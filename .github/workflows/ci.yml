@@ -23,8 +23,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # 브랜치 이름은 PR 작성자가 정하는 값이라 run 에 직접 넣지 않고 env 로 넘긴다 (셸 주입 방지)
       - name: 브랜치 이름
-        run: sh scripts/check-branch-name.sh "${{ github.head_ref }}"
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+        run: sh scripts/check-branch-name.sh "$HEAD_REF"
 
       # 기본 브랜치가 main 이라 새 PR 의 대상이 main 으로 잡히기 쉽다 — 기능 PR 은 dev 로
       - name: main 대상 PR 은 dev 에서만
