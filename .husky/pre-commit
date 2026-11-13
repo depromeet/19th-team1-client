@@ -1,0 +1,10 @@
+# 커밋할 파일만 린트·포맷 (.lintstagedrc.cjs)
+pnpm exec lint-staged
+
+# 시크릿 스캔 — gitleaks 가 설치된 경우에만 (brew install gitleaks)
+if command -v gitleaks >/dev/null 2>&1; then
+  gitleaks git --staged --redact --no-banner || {
+    echo "⛔ 커밋할 변경에 키·토큰으로 보이는 값이 있습니다. 값을 빼고 환경 변수로 옮겨 주세요."
+    exit 1
+  }
+fi

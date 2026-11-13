@@ -1,0 +1,15 @@
+packages:
+  - apps/*
+  - packages/*
+
+# 여러 워크스페이스가 같이 쓰는 버전은 여기서 한 번만 정한다 (각 package.json 에서는 "catalog:").
+# React 는 앱(Expo)과 웹(Next)이 반드시 같은 버전이어야 한다.
+# 한 레포에 React 가 두 벌 깔리면 앱이 런타임 에러로 죽는다 — https://docs.expo.dev/guides/monorepos/
+# React 를 올릴 때는 Expo SDK 가 요구하는 버전(`npx expo install --check`)에 맞춘다.
+catalog:
+  react: 19.3.0
+  react-dom: 19.3.0
+  '@types/react': ~19.3.0
+  '@types/react-dom': ~19.3.0
+  typescript: ~6.0.3
+  eslint: ^9.39.5
