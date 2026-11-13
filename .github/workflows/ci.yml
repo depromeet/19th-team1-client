@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [dev, main]
+  push:
+    branches: [dev]
+
+# CI 는 코드를 읽기만 한다 — 레포 기본 토큰 권한과 상관없이 쓰기·PR 승인 권한을 갖지 않게
+permissions:
+  contents: read
+
+# 같은 PR 에 새 커밋이 오면 이전 실행을 취소한다
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # PR 규칙 — 로컬 훅은 --no-verify 로 건너뛸 수 있어서 서버에서 한 번 더 본다
+  pr-rules:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 브랜치 이름
+        run: sh scripts/check-branch-name.sh "${{ github.head_ref }}"
+
+      # 기본 브랜치가 main 이라 새 PR 의 대상이 main 으로 잡히기 쉽다 — 기능 PR 은 dev 로
+      - name: main 대상 PR 은 dev 에서만
+        if: github.base_ref == 'main' && github.head_ref != 'dev'
+        run: |
+          echo "⛔ main 으로는 dev 에서만 PR 을 올립니다. 이 PR 의 대상 브랜치를 dev 로 바꿔 주세요."
+          exit 1
+
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      # package.json 의 packageManager(pnpm@10.x)를 읽는다
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: 의존성 설치
+        run: pnpm install --frozen-lockfile
+
+      - name: 포맷
+        run: pnpm format:check
+
+      - name: 린트
+        run: pnpm lint
+
+      - name: 타입 검사
+        run: pnpm typecheck
+
+      - name: 테스트
+        run: pnpm test
+
+      - name: 빌드
+        run: pnpm build
