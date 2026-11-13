@@ -46,6 +46,8 @@ pnpm install
 - 기능 브랜치는 `dev` 에서 따고, PR 대상도 `dev` 다. `main` 으로는 `dev` 에서만 PR 을 올린다.
 - `dev`·`main` 에는 직접 푸시할 수 없다. PR 은 2명 승인 후 병합 — `dev` 는 Squash, `main` 은 Merge Commit.
 - `dev` 와 맞출 때는 rebase 한다. 강제 푸시는 자기 기능 브랜치에서만.
+- PR 제목은 병합 커밋 제목이 되므로 커밋 규칙대로 쓴다. 배포 PR(`dev` → `main`)은 `release: <배포 내용>`.
+- 리뷰 방법: [코드 리뷰 가이드](docs/code-review.md)
 
 커밋할 때 린트·포맷·커밋 메시지, 푸시할 때 브랜치 이름·타입 검사가 자동으로 돈다(Husky).
 같은 검사를 PR 에서 CI 가 한 번 더 돈다.
