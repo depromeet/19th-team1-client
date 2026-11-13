@@ -1,0 +1,22 @@
+name: 기능
+description: 새 기능이나 개선
+labels: [feat]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: 무엇을 · 왜
+      description: 만들 것과 필요한 이유
+    validations:
+      required: true
+  - type: textarea
+    id: tasks
+    attributes:
+      label: 할 일
+      value: |
+        - [ ]
+  - type: textarea
+    id: refs
+    attributes:
+      label: 참고 자료
+      description: 디자인, 기획 문서, 관련 이슈·PR 링크
