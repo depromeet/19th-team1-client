@@ -1,8 +1,9 @@
 name: CI
 
 on:
+  # 대상 브랜치를 제한하지 않는다 — 앞 PR 브랜치를 대상으로 쌓은 PR 도 바로 검사한다
+  # (병합을 막는 필수 검사는 dev·main 룰셋에만 걸려 있다)
   pull_request:
-    branches: [dev, main]
   push:
     branches: [dev]
 
