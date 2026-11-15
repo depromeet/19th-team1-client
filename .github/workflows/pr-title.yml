@@ -18,42 +18,28 @@ concurrency:
 jobs:
   pr-title:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 2
     steps:
-      # 배포 PR 은 release: 로 구분한다 (포함된 PR 들은 이미 dev 에서 커밋 규칙을 통과했다)
-      - name: main 대상은 release 형식
-        if: github.base_ref == 'main'
+      # PR 제목은 작성자가 정하는 값이라 env 로 넘긴다 (셸 주입 방지)
+      - name: 제목 형식
         env:
           TITLE: ${{ github.event.pull_request.title }}
+          BASE: ${{ github.base_ref }}
         run: |
-          case "$TITLE" in
-            "release: "?*) exit 0 ;;
-          esac
-          echo "⛔ main 대상 PR 제목은 'release: <배포 내용>' 형식이어야 합니다: $TITLE"
+          if [ "$BASE" = "main" ]; then
+            # 배포 PR 은 release: 로 구분한다 (포함된 PR 들은 이미 dev 에서 검사를 통과했다)
+            pattern='^release: .+'
+            example='release: UT 1차 배포'
+          else
+            # commitlint 설정(config-conventional)과 같은 타입 — 타입을 바꾸면 commitlint.config.mjs 와 같이 고친다
+            pattern='^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([a-z0-9-]+\))?!?: .+'
+            example='feat(web): 로그인 페이지 추가'
+          fi
+
+          if printf '%s' "$TITLE" | grep -Eq "$pattern"; then
+            exit 0
+          fi
+
+          echo "⛔ PR 제목이 규칙과 다릅니다: $TITLE"
+          echo "   예) $example"
           exit 1
-
-      - if: github.base_ref == 'dev'
-        uses: actions/checkout@v4
-
-      - if: github.base_ref == 'dev'
-        uses: pnpm/action-setup@v4
-
-      - if: github.base_ref == 'dev'
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-          cache: pnpm
-
-      - if: github.base_ref == 'dev'
-        run: pnpm install --frozen-lockfile
-
-      # 커밋 훅과 같은 commitlint 설정으로 검사한다
-      - name: dev 대상은 커밋 규칙
-        if: github.base_ref == 'dev'
-        env:
-          TITLE: ${{ github.event.pull_request.title }}
-        run: |
-          printf '%s\n' "$TITLE" | pnpm exec commitlint || {
-            echo "⛔ PR 제목이 커밋 규칙과 다릅니다. 예) feat: 로그인 페이지 추가"
-            exit 1
-          }
