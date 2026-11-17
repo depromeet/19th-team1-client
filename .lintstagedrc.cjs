@@ -28,6 +28,9 @@ module.exports = {
   ),
   'packages/**/*.{ts,tsx,js,jsx,mjs,cjs}': (files) =>
     `prettier --write ${quote(files)}`,
-  '*.{json,md,yaml,yml,mjs,cjs}': 'prettier --write',
-  '.github/**/*.{yml,yaml,md}': 'prettier --write',
+  // 루트 설정 파일만 (./ 로 시작해야 하위 폴더 JS 와 겹치지 않는다)
+  './*.{js,mjs,cjs}': 'prettier --write',
+  // 슬래시 없는 글롭은 모든 폴더의 파일과 맞는다 — JS·TS 확장자를 넣으면 위 eslint 작업과
+  // 같은 파일을 동시에 고치게 되므로 여기엔 넣지 않는다
+  '*.{json,md,yaml,yml,css}': 'prettier --write',
 };
