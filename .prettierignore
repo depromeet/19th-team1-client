@@ -10,3 +10,5 @@ pnpm-lock.yaml
 apps/web/next-env.d.ts
 apps/mobile/ios
 apps/mobile/android
+playwright-report
+test-results
