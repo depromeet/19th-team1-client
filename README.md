@@ -35,6 +35,8 @@ pnpm install
 | `pnpm lint`       | 전체 린트                       |
 | `pnpm typecheck`  | 전체 타입 검사                  |
 | `pnpm build`      | 전체 빌드                       |
+| `pnpm test`       | 전체 단위 테스트 (Vitest)       |
+| `pnpm test:e2e`   | 웹 E2E 테스트 (Playwright)      |
 | `pnpm format`     | 전체 포맷                       |
 
 앱 패키지는 `pnpm add` 대신 `apps/mobile` 에서 `npx expo install <패키지>` 로 설치한다 — SDK 와 맞는 버전을 고른다.
