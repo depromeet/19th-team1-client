@@ -1,0 +1,25 @@
+{
+  "name": "@team1/mobile",
+  "version": "0.0.0",
+  "private": true,
+  "main": "index.ts",
+  "scripts": {
+    "dev": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "lint": "eslint . --max-warnings=0",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "expo": "~58.0.25",
+    "expo-status-bar": "~58.0.5",
+    "react": "catalog:",
+    "react-native": "0.88.1"
+  },
+  "devDependencies": {
+    "@team1/eslint-config": "workspace:*",
+    "@types/react": "catalog:",
+    "eslint": "catalog:",
+    "typescript": "catalog:"
+  }
+}

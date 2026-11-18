@@ -1,0 +1,2 @@
+# 커밋 메시지 형식 검사 (commitlint.config.mjs)
+pnpm exec commitlint --edit "$1"
