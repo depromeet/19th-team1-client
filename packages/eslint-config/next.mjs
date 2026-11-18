@@ -1,6 +1,7 @@
 // apps/web — Next 공식 설정(core-web-vitals + typescript) + 팀 규칙 + Prettier.
 // https://nextjs.org/docs/app/api-reference/config/eslint
 
+import pluginQuery from '@tanstack/eslint-plugin-query';
 import { defineConfig, globalIgnores } from 'eslint/config';
 import nextVitals from 'eslint-config-next/core-web-vitals';
 import nextTs from 'eslint-config-next/typescript';
@@ -11,6 +12,8 @@ import { teamRules } from './base.mjs';
 export default defineConfig([
   ...nextVitals,
   ...nextTs,
+  // React Query 실수(쿼리 키에 쓰는 값 누락 등)를 잡는다
+  ...pluginQuery.configs['flat/recommended'],
   ...teamRules,
   // Prettier 와 겹치는 서식 규칙을 끈다 — 반드시 마지막
   prettier,
