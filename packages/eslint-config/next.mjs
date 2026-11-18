@@ -17,5 +17,14 @@ export default defineConfig([
   ...teamRules,
   // Prettier 와 겹치는 서식 규칙을 끈다 — 반드시 마지막
   prettier,
-  globalIgnores(['.next/**', 'out/**', 'build/**', 'next-env.d.ts']),
+  globalIgnores([
+    '.next/**',
+    'out/**',
+    'build/**',
+    'next-env.d.ts',
+    // Playwright 결과물
+    'playwright-report/**',
+    'test-results/**',
+    'e2e/.results/**',
+  ]),
 ]);
