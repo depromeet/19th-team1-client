@@ -11,6 +11,8 @@ export default defineConfig({
   // CI 에서 test.only 가 남아 있으면 실패시킨다
   forbidOnly: isCI,
   retries: isCI ? 1 : 0,
+  // CI 러너는 코어가 적어 테스트끼리 서버를 두고 다툰다 — Playwright CI 문서 권장대로 하나씩
+  workers: isCI ? 1 : undefined,
   reporter: isCI
     ? [['github'], ['html', { open: 'never' }]]
     : [['html', { open: 'never' }]],
@@ -19,14 +21,18 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
+  // 이 테스트는 브라우저에서 웹을 연다 — 앱 안 웹뷰에서의 동작(앱 ↔ 웹 브리지)은 보지 못한다
   projects: [
     { name: 'desktop', use: { ...devices['Desktop Chrome'] } },
-    // 앱 안 웹뷰로 열리는 화면이라 휴대폰 화면이 실제 환경에 가깝다.
-    // 브라우저는 CI 설치 시간을 줄이려고 Chromium 하나로 두고 화면 크기·터치만 휴대폰으로 맞춘다
+    // 휴대폰 화면 크기·터치만 맞춘 Chromium. 브라우저 정보(UA)는 iPhone Safari 로 보내므로
+    // UA 로 갈리는 코드는 이 프로젝트에서 실제와 다르게 돈다
     {
       name: 'mobile',
       use: { ...devices['iPhone 13'], defaultBrowserType: 'chromium' },
     },
+    // iOS 앱의 웹뷰는 WebKit 이다. Playwright 의 WebKit 은 Safari 와 같지는 않지만
+    // Chromium 과의 차이를 가장 싸게 잡는다
+    { name: 'mobile-webkit', use: { ...devices['iPhone 13'] } },
   ],
   // 서버는 Playwright 가 띄운다 — 로컬은 dev(이미 떠 있으면 그대로 씀), CI 는 빌드 결과를 start
   webServer: {
