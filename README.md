@@ -23,6 +23,8 @@ corepack enable
 pnpm install
 ```
 
+웹 환경 변수는 `apps/web/.env.example` 을 `apps/web/.env.local` 로 복사해 채운다.
+
 `corepack` 이 `Cannot find matching keyid` 에러를 내면 corepack 이 오래된 것이다:
 `npm i -g corepack@latest` 후 다시 실행한다.
 
