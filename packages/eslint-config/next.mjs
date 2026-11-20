@@ -22,7 +22,8 @@ export default defineConfig([
     'out/**',
     'build/**',
     'next-env.d.ts',
-    // Playwright 결과물
+    // 테스트 결과물 (Vitest · Playwright)
+    '.vitest/**',
     'playwright-report/**',
     'test-results/**',
     'e2e/.results/**',

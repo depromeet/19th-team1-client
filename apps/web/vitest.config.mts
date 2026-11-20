@@ -1,13 +1,11 @@
-import { fileURLToPath } from 'node:url';
-
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   plugins: [react()],
   resolve: {
-    // tsconfig 의 `@/*` → `src/*` 와 같게
-    alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
+    // tsconfig 의 paths(`@/*` → `src/*`)를 그대로 쓴다
+    tsconfigPaths: true,
   },
   test: {
     environment: 'jsdom',
