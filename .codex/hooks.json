@@ -1,0 +1,40 @@
+{
+  "description": "Claude Code 와 같은 훅 스크립트(scripts/agent-hooks/)를 부른다. 고치면 /hooks 에서 다시 승인해야 돈다.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$(git rev-parse --show-toplevel)/scripts/agent-hooks/guard.mjs\" --tool=codex",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "apply_patch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$(git rev-parse --show-toplevel)/scripts/agent-hooks/post-edit.mjs\" --tool=codex",
+            "timeout": 60
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$(git rev-parse --show-toplevel)/scripts/agent-hooks/stop-gate.mjs\" --tool=codex",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

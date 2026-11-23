@@ -74,6 +74,9 @@ jobs:
       - name: 테스트
         run: pnpm test
 
+      - name: 에이전트 훅 시험
+        run: pnpm test:hooks
+
       - name: 빌드
         run: pnpm build
 

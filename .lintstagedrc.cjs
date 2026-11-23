@@ -26,6 +26,7 @@ module.exports = {
     '@team1/mobile',
     'apps/mobile',
   ),
+  'scripts/**/*.{js,mjs,cjs}': (files) => `prettier --write ${quote(files)}`,
   'packages/**/*.{ts,tsx,js,jsx,mjs,cjs}': (files) =>
     `prettier --write ${quote(files)}`,
   // 루트 설정 파일만 (./ 로 시작해야 하위 폴더 JS 와 겹치지 않는다)
