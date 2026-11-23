@@ -38,7 +38,7 @@ paths:
 - 토스트·이동·무효화는 mutation 콜백(`onSuccess` · `onError`)에서. 앞이 실패하면 뒤를 보내면 안 되는 연속 요청만 `mutateAsync` + `try/catch` (C-24).
 - 저장 실패는 화면에 닿는다 — 토스트·배너·`isError` 중 하나 (C-25).
 - 전역 스토어를 들이지 않는다. 서버 값은 React Query, 화면 값은 `useState` · URL · Context (C-27).
-- API 호출·응답 타입·폼·서버 컴포넌트 미리 받기는 팀 논의 중이다 (장부 "보류"). 정해지기 전에는 `src/lib/api` 의 `api.get(path, schema)` 와 옆 기능의 모양을 따른다.
+- 응답·폼 검증은 Zod, 폼은 React Hook Form + Zod 로 정했다. 파일 위치·호출 모양·서버 컴포넌트 미리 받기는 아직 보류다 (장부 "보류"). 정해지기 전에는 `src/lib/api` 의 `api.get(path, schema)` 와 옆 기능의 모양을 따른다.
 
 ## 스타일
 
