@@ -17,4 +17,4 @@ reviews:
     - path: '.github/workflows/**'
       instructions: 'run: 에 github.head_ref, PR 제목·본문 같은 PR 작성자 입력 표현식을 직접 넣었는지 확인한다. env 로 넘기고 셸 변수로 참조해야 한다.'
     - path: 'apps/web/**'
-      instructions: "Next 16 cacheComponents 를 켜 두었다. 'use cache' 와 요청마다 달라지는 데이터 접근(cookies, headers, 캐시하지 않은 fetch)이 Suspense 경계 안에 있는지 확인한다."
+      instructions: "Next 16 cacheComponents 를 켜 두었다. 캐시하지 않은 비동기 데이터(fetch 등)와 런타임 API(cookies, headers) 접근은 Suspense 경계 안에 있는지 확인한다. 'use cache' 결과는 Suspense 없이 정적 셸에 들어갈 수 있으니 지적하지 않는다. 일반 'use cache' 안에서 cookies()·headers() 를 직접 호출하면 지적한다."

@@ -4,6 +4,13 @@
 
 - close #
 
+## 선행 PR
+
+<!-- 다른 PR 위에 쌓은 PR 이면: 선행 PR 링크와, 선행 PR 병합 후 origin/dev 로 다시 맞출 계획. 아니면 지우기 -->
+
+- 선행: #
+- 병합 후: `origin/dev` 기준으로 rebase → `--force-with-lease` 푸시
+
 ## 왜
 
 <!-- 이 변경이 필요한 이유와 배경 -->
