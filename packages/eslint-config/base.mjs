@@ -15,6 +15,30 @@ export const teamRules = [
         'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
       ],
+      // value! 는 "여기선 없을 리 없다"는 가정을 타입 검사에서 숨긴다 — 기본값·early return·분기로 처리한다
+      '@typescript-eslint/no-non-null-assertion': 'error',
+      'no-restricted-syntax': [
+        'error',
+        {
+          // as unknown as T 는 타입 검사를 통째로 건너뛴다 — 맞는 타입을 만들거나 좁혀서 쓴다
+          selector:
+            "TSAsExpression[expression.type='TSAsExpression'][expression.typeAnnotation.type='TSUnknownKeyword']",
+          message:
+            '이중 단언(as unknown as)은 타입 검사를 건너뜁니다. 타입 가드나 변환 함수로 좁혀 주세요.',
+        },
+      ],
+      // 상위 폴더 상대 경로는 파일을 옮기면 깨지고 어디서 왔는지 안 보인다 — 같은 폴더(./)만 허용, 위는 @/ 로
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['../*'],
+              message: '상위 폴더는 @/ 절대 경로로 가져와 주세요.',
+            },
+          ],
+        },
+      ],
       'no-console': ['warn', { allow: ['warn', 'error'] }],
       // import 순서 — react·next → 외부 패키지 → 우리 워크스페이스(@team1) → 앱 내부(@/) → 상대 경로.
       // 줄 순서만 바뀐 diff 를 없앤다. --fix 가 자동으로 정렬한다.

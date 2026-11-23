@@ -1,0 +1,31 @@
+name: Workflow lint
+
+# 워크플로 파일이 바뀐 PR 에서만 보안 검사를 돈다 (run 에 PR 입력 직접 사용, 과한 권한, pull_request_target 등).
+# 경로 조건이 있는 검사라 필수 검사로는 걸지 않는다 — 안 도는 PR 에서 "대기 중"으로 막히기 때문.
+on:
+  pull_request:
+    branches: [dev, main]
+    paths:
+      - '.github/workflows/**'
+      - '.github/actions/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: workflow-lint-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  zizmor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      # 버전을 고정한다 — 새 버전이 규칙을 늘려 상관없는 PR 이 갑자기 깨지지 않게. 올릴 때 이 줄만 바꾼다
+      # --offline: 원격 조회가 필요한 검사(액션 최신 버전 확인 등)는 끈다 — 토큰 없이 같은 결과가 나오게
+      - name: zizmor
+        run: pipx run zizmor==1.32.0 --offline --format=github .github/workflows
