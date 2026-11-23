@@ -1,0 +1,45 @@
+name: PR 제목
+
+# Squash 병합 커밋 제목이 PR 제목이 된다 — 커밋 훅이 보지 못하는 PR 제목을 여기서 검사한다
+# 제목만 고쳐도 다시 돌도록 edited 를 받는다. 코드 검사(ci.yml)와 워크플로를 나눈 이유:
+# 같이 두면 제목 수정 실행이 진행 중인 코드 검사를 취소하거나, 건너뛴 검사가 통과로 잡힐 수 있다
+on:
+  pull_request:
+    branches: [dev, main]
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-title-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  pr-title:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      # PR 제목은 작성자가 정하는 값이라 env 로 넘긴다 (셸 주입 방지)
+      - name: 제목 형식
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+          BASE: ${{ github.base_ref }}
+        run: |
+          if [ "$BASE" = "main" ]; then
+            # 배포 PR 은 release: 로 구분한다 (포함된 PR 들은 이미 dev 에서 검사를 통과했다)
+            pattern='^release: .+'
+            example='release: UT 1차 배포'
+          else
+            # commitlint 설정(config-conventional)과 같은 타입 — 타입을 바꾸면 commitlint.config.mjs 와 같이 고친다
+            pattern='^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([a-z0-9-]+\))?!?: .+'
+            example='feat(web): 로그인 페이지 추가'
+          fi
+
+          if printf '%s' "$TITLE" | grep -Eq "$pattern"; then
+            exit 0
+          fi
+
+          echo "⛔ PR 제목이 규칙과 다릅니다: $TITLE"
+          echo "   예) $example"
+          exit 1
