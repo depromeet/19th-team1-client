@@ -15,7 +15,8 @@
 
 ## AI 리뷰 (시범 운영)
 
-- CodeRabbit 이 `dev` 대상 PR 을 자동 리뷰한다. `⚠️ Potential issue` 는 대응하고 나머지는 선택
+- CodeRabbit 이 `dev` 대상 PR 을 리뷰한다. 레포 스타가 10개 미만이라 자동 리뷰는 꺼져 있다 — PR 을 올리면 `@coderabbitai review` 댓글로 부른다. 이미 리뷰한 커밋은 다시 보지 않으므로, 커밋을 더 올린 뒤 리뷰받으려면 다시 부른다
+- `Major` 이상은 대응하고 `Minor` 는 선택
 - 1~2주 써 보고 계속 쓸지 정한다
 
 ## PR 제목
