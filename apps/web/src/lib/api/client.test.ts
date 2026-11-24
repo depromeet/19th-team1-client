@@ -76,6 +76,18 @@ describe('api', () => {
     });
   });
 
+  it('408·429 는 4xx 여도 다시 시도할 수 있는 실패로 본다', async () => {
+    fetchMock
+      .mockResolvedValueOnce(respond(429, undefined))
+      .mockResolvedValueOnce(respond(408, undefined));
+
+    const tooMany = await captureError(api.get('/items/1', itemSchema));
+    const timedOut = await captureError(api.get('/items/1', itemSchema));
+
+    expect(tooMany).toMatchObject({ status: 429, isPermanent: false });
+    expect(timedOut).toMatchObject({ status: 408, isPermanent: false });
+  });
+
   it('응답이 계약과 다르면 validation 에러가 되고, 어느 필드인지 기록한다', async () => {
     const log = vi.spyOn(console, 'error').mockImplementation(() => {});
     fetchMock.mockResolvedValueOnce(respond(200, { data: { id: 1 } }));
@@ -174,6 +186,19 @@ describe('api', () => {
 
     expect(await cancelled).toMatchObject({ kind: 'aborted' });
     await expect(other).resolves.toBeNull();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('서버에서는 같은 변경 요청도 합치지 않는다 — 다른 사용자의 요청일 수 있다', async () => {
+    vi.stubGlobal('window', undefined);
+    fetchMock.mockImplementation(async () => respond(200, { data: null }));
+    const body = { title: '새 글' };
+
+    await Promise.all([
+      api.post('/items', z.null(), { body }),
+      api.post('/items', z.null(), { body }),
+    ]);
+
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 

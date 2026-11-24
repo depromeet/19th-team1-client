@@ -131,9 +131,11 @@ async function request<T extends z.ZodType>(
   options: RequestOptions = {},
 ): Promise<z.infer<T>> {
   const url = buildUrl(path, options.query);
-  // 취소 신호를 따로 넘긴 호출은 수명이 달라 합치지 않는다 — 한쪽 취소가 다른 쪽까지 끊는다
+  // 합치지 않는 경우:
+  // - 서버: 한 프로세스를 모든 사용자가 같이 써서, 다른 사용자의 같은 요청끼리 합쳐진다
+  // - 취소 신호를 따로 넘긴 호출: 수명이 달라 한쪽 취소가 다른 쪽까지 끊는다
   const raw =
-    method === 'GET' || options.signal
+    method === 'GET' || typeof window === 'undefined' || options.signal
       ? await send(method, url, options)
       : await dedupe(dedupeKey(method, url, options), () =>
           send(method, url, options),

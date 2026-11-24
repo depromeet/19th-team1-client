@@ -21,6 +21,8 @@ const FALLBACK_MESSAGE =
 const NETWORK_MESSAGE = '서버에 연결하지 못했어요. 연결 상태를 확인해 주세요.';
 const TIMEOUT_MESSAGE = '응답이 늦어지고 있어요. 잠시 후 다시 시도해 주세요.';
 
+const RETRYABLE_CLIENT_STATUSES = new Set([408, 429]);
+
 function networkKindOf(error: unknown): ApiErrorKind {
   // DOMException 은 환경에 따라 Error 를 상속하지 않아 instanceof 대신 이름으로 본다
   const name =
@@ -102,11 +104,13 @@ export class ApiError extends Error {
     });
   }
 
-  /** 다시 시도해도 결과가 같은 실패인가 — 요청이 잘못됐거나(4xx) 계약이 다르다 */
+  /**
+   * 다시 시도해도 결과가 같은 실패인가 — 요청이 잘못됐거나(4xx) 계약이 다르다.
+   * 408(요청 시간 초과)·429(요청이 너무 많음)는 4xx 지만 잠시 뒤 다시 하면 되는 실패라 뺀다.
+   */
   get isPermanent() {
-    return (
-      this.kind === 'validation' ||
-      (this.kind === 'http' && this.status !== null && this.status < 500)
-    );
+    if (this.kind === 'validation') return true;
+    if (this.kind !== 'http' || this.status === null) return false;
+    return this.status < 500 && !RETRYABLE_CLIENT_STATUSES.has(this.status);
   }
 }
