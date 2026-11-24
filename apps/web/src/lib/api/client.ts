@@ -71,6 +71,13 @@ interface RawResponse {
   body: unknown;
 }
 
+// 실제로 같은 HTTP 요청만 같은 키가 된다: 본문 생략과 `null` 본문, 시간 제한이 다른 호출은 갈린다
+function dedupeKey(method: Method, url: string, options: RequestOptions) {
+  const body = options.body === undefined ? '-' : JSON.stringify(options.body);
+  const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+  return `${method} ${url} ${timeoutMs} ${body}`;
+}
+
 function dedupe(key: string, send: () => Promise<RawResponse>) {
   const existing = inFlight.get(key);
   if (existing) return existing;
@@ -124,12 +131,12 @@ async function request<T extends z.ZodType>(
   options: RequestOptions = {},
 ): Promise<z.infer<T>> {
   const url = buildUrl(path, options.query);
+  // 취소 신호를 따로 넘긴 호출은 수명이 달라 합치지 않는다 — 한쪽 취소가 다른 쪽까지 끊는다
   const raw =
-    method === 'GET'
+    method === 'GET' || options.signal
       ? await send(method, url, options)
-      : await dedupe(
-          `${method} ${url} ${JSON.stringify(options.body ?? null)}`,
-          () => send(method, url, options),
+      : await dedupe(dedupeKey(method, url, options), () =>
+          send(method, url, options),
         );
 
   // 본문 없는 성공(204 등)은 { data: null } 로 보고 스키마(z.null())로 확인한다

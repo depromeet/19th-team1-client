@@ -141,6 +141,42 @@ describe('api', () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
+  it('본문 생략과 null 본문, 시간 제한이 다른 변경 요청은 합치지 않는다', async () => {
+    fetchMock.mockImplementation(async () => respond(200, { data: null }));
+
+    await Promise.all([
+      api.post('/items/1/like', z.null()),
+      api.post('/items/1/like', z.null(), { body: null }),
+      api.post('/items/1/like', z.null(), { timeoutMs: 1_000 }),
+    ]);
+
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it('취소 신호를 넘긴 변경 요청은 합치지 않아, 한쪽을 취소해도 다른 쪽은 끝난다', async () => {
+    fetchMock.mockImplementation(
+      (_url, init) =>
+        new Promise((resolve, reject) => {
+          init?.signal?.addEventListener('abort', () =>
+            reject(init.signal?.reason),
+          );
+          setTimeout(() => resolve(respond(200, { data: null })), 0);
+        }),
+    );
+    const controller = new AbortController();
+    const body = { title: '새 글' };
+
+    const cancelled = captureError(
+      api.post('/items', z.null(), { body, signal: controller.signal }),
+    );
+    const other = api.post('/items', z.null(), { body });
+    controller.abort();
+
+    expect(await cancelled).toMatchObject({ kind: 'aborted' });
+    await expect(other).resolves.toBeNull();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
   it('본문 없는 성공 응답은 z.null() 스키마로 받는다', async () => {
     fetchMock.mockResolvedValueOnce(new Response(null, { status: 204 }));
 
