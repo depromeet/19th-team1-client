@@ -41,6 +41,11 @@ pnpm install
 | `pnpm test:e2e`   | 웹 E2E 테스트 (Playwright)      |
 | `pnpm format`     | 전체 포맷                       |
 
+E2E 를 처음 돌리기 전에 브라우저를 한 번 설치한다:
+`pnpm --filter @team1/web exec playwright install chromium webkit`.
+E2E 는 3000 에 떠 있는 서버를 그대로 쓴다 — 우리 웹(`pnpm dev:web`)이 떠 있으면 끄지 않아도 된다.
+다른 프로젝트가 3000 을 쓰고 있으면 그 화면을 테스트하게 되니 `E2E_PORT=3001 pnpm test:e2e` 로 돌린다.
+
 앱 패키지는 `pnpm add` 대신 `apps/mobile` 에서 `npx expo install <패키지>` 로 설치한다 — SDK 와 맞는 버전을 고른다.
 
 ## 협업 규칙

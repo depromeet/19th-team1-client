@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
-// 3000 을 다른 서버가 쓰고 있으면 E2E_PORT=3001 처럼 바꿔 돌린다
+// 로컬은 이 포트에 떠 있는 서버를 그대로 쓴다(우리 dev 서버면 그대로 둔다).
+// 다른 프로젝트가 3000 을 쓰고 있으면 그 화면을 테스트하게 되니 E2E_PORT=3001 처럼 바꿔 돌린다
 const PORT = Number(process.env.E2E_PORT ?? 3000);
 const isCI = !!process.env.CI;
 
