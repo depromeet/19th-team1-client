@@ -73,6 +73,13 @@ jobs:
           curl -s https://api.anthropic.com/v1/messages -H "x-api-key: $KEY" -H "anthropic-version: 2023-06-01" -H "content-type: application/json" \
             -d '{"model":"claude-haiku-5-5","max_tokens":5,"messages":[{"role":"user","content":"ok"}]}' | jq -c '.error.message // "통과"'
 
+      # 시험: 액션에 딸린 Claude Code 대신 로컬에서 되는 버전을 지정해 본다 — 확인 뒤 정리
+      - name: Claude Code 설치(시험)
+        run: |
+          curl -fsSL https://claude.ai/install.sh | bash -s 2.1.294
+          echo "CLAUDE_BIN=$HOME/.local/bin/claude" >> "$GITHUB_ENV"
+          "$HOME/.local/bin/claude" --version
+
       - name: 리뷰
         id: claude
         if: ${{ steps.range.outputs.lines != '0' }}
@@ -81,6 +88,7 @@ jobs:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           # Claude GitHub 앱을 설치하지 않고 이 실행의 토큰으로 줄 댓글을 단다
           github_token: ${{ github.token }}
+          path_to_claude_code_executable: ${{ env.CLAUDE_BIN }}
           prompt: |
             .github/claude-review.md 를 읽고 그대로 리뷰한다.
             레포: ${{ github.repository }} · PR #${{ github.event.pull_request.number }}
