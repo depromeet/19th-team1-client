@@ -33,6 +33,19 @@ const CASES = [
   [' npm install zod', 'deny'],
   ["cat <<'EOF'; cat apps/web/.env.local\ntext\nEOF", 'deny'],
   ['cat <<EOF\n$(cat apps/web/.env.local)\nEOF', 'deny'],
+  // 셸에 넘기는 heredoc 은 본문이 실행된다 · 메시지를 비워도 그 뒤 명령과 묶은 옵션은 남는다 (PR #4 시험 리뷰)
+  ["bash <<'EOF'\nnpm install zod\nEOF", 'deny'],
+  ["ssh host <<'EOF'\ncat .env\nEOF", 'deny'],
+  ['git commit -m "fix: x" && cat .env', 'deny'],
+  ['git commit -nm "fix: x"', 'deny'],
+  ['git commit -m "fix: $(cat .env)"', 'deny'],
+  ['cat ".env.local"', 'deny'],
+  ['cat -b ".env"', 'deny'],
+  ['cat -t ".env.local"', 'deny'],
+  ["cat <<'EOF' | bash\nnpm install zod\nEOF", 'deny'],
+  ["git commit -m 'a\\' && cat .env && echo 'b'", 'deny'],
+  ["/bin/bash <<'EOF'\nnpm install zod\nEOF", 'deny'],
+  ['git commit -m "$(cat "x" .env)"', 'deny'],
   // 통과 — 자기 작업만 잃는 명령은 팀 훅이 다루지 않는다 (각자 설정 몫)
   ['git push origin feat/a', 'pass'],
   ['git push --force-with-lease origin feat/a', 'pass'],
@@ -60,6 +73,15 @@ const CASES = [
   ['rm -rf apps/web/.next', 'pass'],
   ['git stash', 'pass'],
   ["git commit -F - <<'EOF'\nfix: --no-verify 안내 문구 수정\nEOF", 'pass'],
+  // 메시지 속 글은 명령이 아니다 — 정상 커밋 · PR 이 막혔다 (PR #4 시험 리뷰)
+  ['git commit -m "docs: cat .env 안내"', 'pass'],
+  ['git commit -m "feat: 옵션 -n 추가"', 'pass'],
+  ["git commit -am 'docs: grep .env 예시'", 'pass'],
+  ['gh pr create --title "x" --body "source .env 대신 .env.example"', 'pass'],
+  [
+    'gh pr create --title "docs: bash 안내" --body-file - <<\'EOF\'\nsource .env 대신 .env.example\nEOF',
+    'pass',
+  ],
 ];
 
 for (const [command, expected] of CASES) {
