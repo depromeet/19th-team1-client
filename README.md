@@ -54,6 +54,7 @@ E2E 는 3000 에 떠 있는 서버를 그대로 쓴다 — 우리 웹(`pnpm dev:
 - 커밋: `<type>(<scope>): <한글 내용>` — 예) `feat(web): 저장물 카드 목록 추가`
 - 기능 브랜치는 `dev` 에서 따고, PR 대상도 `dev` 다. `main` 으로는 `dev` 에서만 PR 을 올린다.
 - `dev`·`main` 에는 직접 푸시할 수 없다. PR 은 2명 승인 후 병합 — `dev` 는 Squash, `main` 은 Merge Commit.
+- 리뷰어는 PR 을 열면 자동으로 요청된다 — 웹 파트 3명 중 작성자를 뺀 2명(`.github/CODEOWNERS`).
 - `dev` 와 맞출 때는 rebase 한다. 강제 푸시는 자기 기능 브랜치에서만.
 - PR 제목은 병합 커밋 제목이 되므로 커밋 규칙대로 쓴다. 배포 PR(`dev` → `main`)은 `release: <배포 내용>`.
 - 리뷰 방법: [코드 리뷰 가이드](docs/code-review.md)
