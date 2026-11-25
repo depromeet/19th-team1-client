@@ -35,3 +35,6 @@ test-results/
 
 # Vercel
 .vercel
+
+# Claude 리뷰가 CI 에서 만드는 임시 파일
+.claude-review/

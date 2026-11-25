@@ -1,0 +1,133 @@
+name: Claude 리뷰
+
+# PR 을 열면 전체를, 커밋을 더 올리면 마지막 리뷰 뒤로 올린 커밋분만 Claude 가 리뷰한다 — 결정 기록 0005
+# 지시문은 .github/claude-review.md (로컬 사전 리뷰와 같은 파일).
+# 리뷰어에게는 읽기 도구와 줄 댓글 도구만 준다 — diff · 기존 댓글은 워크플로가 미리 파일로 넘기고, 요약 · 비용은 워크플로가 PR 댓글 하나에 올린다.
+on:
+  pull_request:
+    branches: [dev]
+    types: [opened, synchronize, ready_for_review, reopened]
+    # 문서·잠금 파일만 바뀐 PR 은 사람 리뷰로 충분하다 — 비용을 아낀다
+    paths-ignore:
+      - '**/*.md'
+      - 'pnpm-lock.yaml'
+
+permissions: {}
+
+# 짧은 사이에 여러 번 푸시하면 앞 리뷰는 취소하고 마지막 것만 돈다
+concurrency:
+  group: claude-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    # 초안 PR · fork PR 은 건너뛴다(fork 에는 시크릿이 없다)
+    if: ${{ !github.event.pull_request.draft && github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      # 범위: 마지막으로 리뷰를 마친 커밋(요약 댓글에 남김) 뒤로 올린 것만. 그 기록이 없거나(첫 리뷰)
+      # 강제 푸시로 그 커밋이 사라졌으면 PR 전체. 취소 · 실패한 리뷰는 기록을 남기지 않으니 그 커밋분은 다음 리뷰가 본다.
+      # 잠금 파일·생성물은 diff 에서 미리 빼 입력을 줄인다. 바뀐 줄이 없으면 리뷰를 건너뛴다.
+      - name: 리뷰 범위
+        id: range
+        env:
+          GH_TOKEN: ${{ github.token }}
+          AFTER: ${{ github.event.pull_request.head.sha }}
+          BASE: ${{ github.event.pull_request.base.ref }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          last=$(gh api "repos/$REPO/issues/$PR/comments" --paginate -q '.[] | select(.body | startswith("<!-- claude-review -->")) | .body' \
+            | grep -o '<!-- reviewed: [0-9a-f]\{40\} -->' | head -1 | grep -o '[0-9a-f]\{40\}' || true)
+          if [ -n "$last" ] && git merge-base --is-ancestor "$last" "$AFTER" 2>/dev/null; then
+            range="$last..$AFTER"; kind="추가 커밋분"
+          else
+            range="origin/$BASE...$AFTER"; kind="PR 전체"
+          fi
+          mkdir -p .claude-review
+          git diff "$range" -- . ':(exclude)pnpm-lock.yaml' ':(exclude)**/next-env.d.ts' > .claude-review/review.diff
+          gh api "repos/$REPO/pulls/$PR/comments" --paginate -q '.[] | {path, line, body}' > .claude-review/existing.jsonl
+          lines=$(grep -c '^[+-]' .claude-review/review.diff || true)
+          {
+            echo "range=$range"
+            echo "kind=$kind"
+            echo "lines=$lines"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: 리뷰
+        id: claude
+        if: ${{ steps.range.outputs.lines != '0' }}
+        uses: anthropics/claude-code-action@469588f42e6b1e94cd14ad09dccfeaec772ce0fd # v1.0.280
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Claude GitHub 앱을 설치하지 않고 이 실행의 토큰으로 줄 댓글을 단다
+          github_token: ${{ github.token }}
+          prompt: |
+            .github/claude-review.md 를 읽고 그대로 리뷰한다.
+            레포: ${{ github.repository }} · PR #${{ github.event.pull_request.number }}
+            범위(${{ steps.range.outputs.kind }}, ${{ steps.range.outputs.range }}): .claude-review/review.diff
+            이미 달린 줄 댓글: .claude-review/existing.jsonl (같은 줄 · 같은 내용이면 다시 달지 않는다)
+            요약은 댓글로 달지 말고 마지막 답으로만 쓴다 — 워크플로가 PR 댓글에 올린다.
+          # 리뷰에는 중간 크기 모델로 충분하다. 턴 수를 묶어 비용이 새지 않게 한다. 셸 명령은 주지 않는다(읽기 · 줄 댓글만)
+          claude_args: >-
+            --model sonnet
+            --max-turns 25
+            --allowedTools "mcp__github_inline_comment__create_inline_comment,Read,Grep,Glob"
+
+      # 요약 · 비용 — PR 댓글 하나에 최신 요약을 바꿔 쓰고, 비용은 리뷰마다 한 줄씩 쌓는다. 실행 요약(Summary)에도 남긴다
+      - name: 요약 · 비용 기록
+        if: ${{ always() && steps.claude.outputs.execution_file != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXEC: ${{ steps.claude.outputs.execution_file }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+          RANGE: ${{ steps.range.outputs.range }}
+          KIND: ${{ steps.range.outputs.kind }}
+          LINES: ${{ steps.range.outputs.lines }}
+          AFTER: ${{ github.event.pull_request.head.sha }}
+          OK: ${{ steps.claude.outputs.conclusion == 'success' }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          result=$(jq -r '[.[] | select(.type == "result")] | last' "$EXEC" 2>/dev/null || echo '{}')
+          summary=$(printf '%s' "$result" | jq -r '.result // "요약을 읽지 못했다 — 실행 기록을 본다"')
+          read -r cost tin tcache tout turns <<< "$(printf '%s' "$result" | jq -r '"\(.total_cost_usd // 0) \(.usage.input_tokens // 0) \(.usage.cache_read_input_tokens // 0) \(.usage.output_tokens // 0) \(.num_turns // 0)"')"
+          cost=$(printf '%.4f' "$cost")
+          row="| $(date -u '+%m-%d %H:%M') | $KIND \`$RANGE\` | $LINES | \$$cost | $tin / $tcache / $tout | $turns | [실행]($RUN_URL) |"
+          head='| 때(UTC) | 범위 | 바뀐 줄 | 비용 | 입력 / 캐시 / 출력 토큰 | 턴 | |
+          | --- | --- | --- | --- | --- | --- | --- |'
+          head=$(printf '%s' "$head" | sed 's/^ *//')
+          printf '### Claude 리뷰 비용\n%s\n%s\n' "$head" "$row" >> "$GITHUB_STEP_SUMMARY"
+
+          marker='<!-- claude-review -->'
+          id=$(gh api "repos/$REPO/issues/$PR/comments" --paginate -q ".[] | select(.body | startswith(\"$marker\")) | .id" | head -1)
+          rows=""
+          reviewed=""
+          if [ -n "$id" ]; then
+            old=$(gh api "repos/$REPO/issues/comments/$id" -q .body)
+            reviewed=$(printf '%s' "$old" | grep -o '<!-- reviewed: [0-9a-f]\{40\} -->' | head -1 || true)
+            rows=$(printf '%s\n' "$old" | awk '/<!-- cost-rows -->/{f=1;next} /<!-- \/cost-rows -->/{f=0} f' | grep -v '^| 때\|^| ---')
+          fi
+          rows=$(printf '%s\n%s' "$rows" "$row" | sed '/^$/d')
+          # 리뷰를 마쳤을 때만 이번 커밋을 기록한다 — 다음 리뷰는 여기서부터
+          if [ "$OK" = "true" ]; then
+            reviewed="<!-- reviewed: $AFTER -->"
+          else
+            summary="리뷰가 끝나지 않았다(취소 · 실패 · 턴 상한) — 이 커밋분은 다음 리뷰가 다시 본다. [실행]($RUN_URL)"
+          fi
+          total=$(printf '%s\n' "$rows" | awk -F'|' '{gsub(/[ $]/,"",$5); s+=$5} END {printf "%.4f", s}')
+          body=$(printf '%s\n%s\n### Claude 리뷰 — 최신 요약\n\n%s\n\n<details><summary>비용 — 이 PR 누적 $%s · 리뷰마다 한 줄</summary>\n\n<!-- cost-rows -->\n%s\n%s\n<!-- /cost-rows -->\n\n월 합계는 Claude Console 에서 이 키의 사용량으로 본다.\n</details>\n' "$marker" "$reviewed" "$summary" "$total" "$head" "$rows")
+          if [ -n "$id" ]; then
+            gh api -X PATCH "repos/$REPO/issues/comments/$id" -f body="$body" > /dev/null
+          else
+            gh api -X POST "repos/$REPO/issues/$PR/comments" -f body="$body" > /dev/null
+          fi
