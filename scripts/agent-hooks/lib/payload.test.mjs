@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { shellCommand } from '../lib/payload.mjs';
+import { shellCommand } from './payload.mjs';
 
 test('셸 명령 — 문자열(Claude)과 배열(Codex) 모두', () => {
   assert.equal(

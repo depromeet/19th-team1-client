@@ -4,7 +4,7 @@ import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { test } from 'node:test';
 
-import { check } from '../guard.mjs';
+import { check } from './guard.mjs';
 
 const levelOf = (command) => check(command)?.level ?? 'pass';
 
@@ -52,7 +52,7 @@ for (const [command, expected] of CASES) {
 }
 
 test('훅 출력 모양 — 두 도구 공통 permissionDecision', () => {
-  const script = path.join(import.meta.dirname, '../guard.mjs');
+  const script = path.join(import.meta.dirname, 'guard.mjs');
   const input = JSON.stringify({
     tool_name: 'Bash',
     tool_input: { command: 'npm i zod' },
@@ -66,7 +66,7 @@ test('훅 출력 모양 — 두 도구 공통 permissionDecision', () => {
 });
 
 test('셸이 아닌 도구는 보지 않는다', () => {
-  const script = path.join(import.meta.dirname, '../guard.mjs');
+  const script = path.join(import.meta.dirname, 'guard.mjs');
   const input = JSON.stringify({
     tool_name: 'Read',
     tool_input: { file_path: '.env' },
