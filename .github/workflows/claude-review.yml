@@ -123,7 +123,9 @@ jobs:
           if [ "$OK" = "true" ]; then
             reviewed="<!-- reviewed: $AFTER -->"
           else
-            summary="리뷰가 끝나지 않았다(취소 · 실패 · 턴 상한) — 이 커밋분은 다음 리뷰가 다시 본다. [실행]($RUN_URL)"
+            # 실패 이유(실행 기록의 마지막 답)를 앞 300자만 붙인다 — 액션 로그는 공개 레포라 출력을 가린다
+            why=$(printf '%s' "$summary" | head -c 300)
+            summary=$(printf '리뷰가 끝나지 않았다(취소 · 실패 · 턴 상한) — 이 커밋분은 다음 리뷰가 다시 본다. [실행](%s)\n\n> %s' "$RUN_URL" "$why")
           fi
           total=$(printf '%s\n' "$rows" | awk -F'|' '{gsub(/[ $]/,"",$5); s+=$5} END {printf "%.4f", s}')
           body=$(printf '%s\n%s\n### Claude 리뷰 — 최신 요약\n\n%s\n\n<details><summary>비용 — 이 PR 누적 $%s · 리뷰마다 한 줄</summary>\n\n<!-- cost-rows -->\n%s\n%s\n<!-- /cost-rows -->\n\n월 합계는 Claude Console 에서 이 키의 사용량으로 본다.\n</details>\n' "$marker" "$reviewed" "$summary" "$total" "$head" "$rows")
