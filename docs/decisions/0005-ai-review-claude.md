@@ -8,7 +8,7 @@
 
 CodeRabbit 시범 운영을 끝내고 AI 리뷰는 Claude 로 한다. 앱이 조직에 설치돼 있어 설정 파일이 없으면 기본값(자동 리뷰·요약 켜짐)으로 돌기 때문에, `.coderabbit.yaml` 에는 끄는 설정만 남긴다. 조직 앱 설정에서 이 레포를 빼면 그 파일도 지운다.
 
-- **어떻게** — GitHub Action(`anthropics/claude-code-action`, 커밋 고정)이 `dev` 로 가는 PR 을 리뷰한다(`.github/workflows/claude-review.yml`). 지시문은 `.github/claude-review.md` 하나 — 로컬에서 PR 전에 같은 리뷰를 돌릴 때도 이 파일을 쓴다.
+- **어떻게** — 워크플로(`.github/workflows/claude-review.yml`)가 Agent SDK 스크립트(`scripts/claude-review/review.mjs`, SDK 버전 고정)로 `dev` 로 가는 PR 을 리뷰하고, 지적을 줄 댓글로 단다. 리뷰 단계는 API 키만, 댓글 단계는 GitHub 토큰만 받는다. 지시문은 `.github/claude-review.md` 하나 — 로컬에서 PR 전에 같은 리뷰를 돌릴 때도 이 파일을 쓴다.
 - **언제** — PR 을 열 때(전체), 커밋을 더 올릴 때(마지막으로 리뷰를 마친 커밋 뒤로 올린 것만 — 취소 · 실패한 리뷰의 커밋분은 다음 리뷰가 본다). 짧은 사이에 여러 번 푸시하면 마지막 것만. 초안 · fork · 문서·잠금 파일만 바뀐 PR 은 건너뛴다.
 - **비용** — 레포 시크릿 `ANTHROPIC_API_KEY`(Claude Console API 키, 리뷰 전용 키로 만들어 월 한도를 건다). 리뷰마다 비용 · 토큰을 PR 댓글 하나에 쌓고, 월 합계는 Console 에서 이 키의 사용량으로 본다.
 - **아끼는 법** — 바뀐 줄만, 장부는 필요한 번호만 찾아 읽기, 중간 크기 모델, 턴 수 상한, 기계가 막는 것은 지적하지 않기.
@@ -24,6 +24,8 @@ CodeRabbit 시범 운영을 끝내고 AI 리뷰는 Claude 로 한다. 앱이 조
 - 관리형 Code Review(claude.ai)는 Claude Team · Enterprise 플랜이 필요하다. 개인 구독 토큰은 공식 문서가 여러 사람이 쓰는 레포엔 API 키를 권해서 쓰지 않는다.
 
 ## 버린 안
+
+- GitHub Action(`anthropics/claude-code-action`) — PR #7 에서 실제로 돌려 보니 키의 크레딧(플랜에 딸린 API 크레딧, 적용 대상 Agent SDK · API · 배치 · Playground · 관리형 에이전트)이 Action 진입점에는 적용되지 않아 `billing_error` 로 실패했다. 같은 키 · 같은 버전으로 진입점만 바꿔 재현했다. 구매 크레딧으로는 돌 수 있다.
 
 - CodeRabbit 유지 — 지적의 질은 좋았다(PR #4 에서 막기 훅 구멍 5개를 찾음). 한도 때문에 팀 규모에서 쓰기 어렵다.
 
