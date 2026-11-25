@@ -64,6 +64,15 @@ jobs:
             echo "lines=$lines"
           } >> "$GITHUB_OUTPUT"
 
+      # 시험: 시크릿 키가 로컬 키와 같은지(해시 앞 12자) · API 가 받는지 — 확인 뒤 지운다
+      - name: 키 확인(시험)
+        env:
+          KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          printf '해시 %s · 길이 %s\n' "$(printf %s "$KEY" | sha256sum | cut -c1-12)" "${#KEY}"
+          curl -s https://api.anthropic.com/v1/messages -H "x-api-key: $KEY" -H "anthropic-version: 2023-06-01" -H "content-type: application/json" \
+            -d '{"model":"claude-haiku-5-5","max_tokens":5,"messages":[{"role":"user","content":"ok"}]}' | jq -c '.error.message // "통과"'
+
       - name: 리뷰
         id: claude
         if: ${{ steps.range.outputs.lines != '0' }}
