@@ -16,7 +16,7 @@
 ## AI 리뷰
 
 - CodeRabbit 시범 운영을 끝내고 Claude 리뷰로 바꾼다 — `docs/decisions/0005-ai-review-claude.md`. 설정·사용법은 다음 PR 에서 정한다.
-- 그 전까지는 사람 리뷰만 한다.
+- 그 전까지는 사람 리뷰만 한다. `@coderabbitai` 를 부르지 않는다(`.coderabbit.yaml` 은 끄는 설정만 둔다).
 
 ## PR 제목
 

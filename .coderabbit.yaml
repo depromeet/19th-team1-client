@@ -1,0 +1,19 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+# CodeRabbit 은 쓰지 않는다 — AI 리뷰는 Claude 로 바꿈 (docs/decisions/0005-ai-review-claude.md).
+# 앱이 조직에 설치돼 있어 이 파일을 지우면 기본값(자동 리뷰·요약 켜짐)으로 돈다. 그래서 끄는 설정만 남긴다.
+# 조직 앱 설정에서 이 레포를 빼면 이 파일도 지운다.
+language: ko-KR
+reviews:
+  auto_review:
+    enabled: false
+  high_level_summary: false
+  review_status: false
+  pre_merge_checks:
+    title:
+      mode: 'off'
+    description:
+      mode: 'off'
+    issue_assessment:
+      mode: 'off'
+chat:
+  auto_reply: false
