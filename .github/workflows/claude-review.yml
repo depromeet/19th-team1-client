@@ -129,6 +129,8 @@ jobs:
           OK: ${{ steps.claude.outputs.conclusion == 'success' }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
+          # 시험: 실패 원인 — 실행 기록에서 본문 없이 종류 · 오류만 — 확인 뒤 지운다
+          jq -c '.[] | {type, subtype, model: (.model // .message.model), err: (.error // .message.error // null), stop: .message.stop_reason, api: (.apiKeySource // null), text: ((.message.content // [])[0].text // null | tostring | .[0:200])}' "$EXEC" | head -20
           result=$(jq -r '[.[] | select(.type == "result")] | last' "$EXEC" 2>/dev/null || echo '{}')
           summary=$(printf '%s' "$result" | jq -r '.result // "요약을 읽지 못했다 — 실행 기록을 본다"')
           read -r cost tin tcache tout turns <<< "$(printf '%s' "$result" | jq -r '"\(.total_cost_usd // 0) \(.usage.input_tokens // 0) \(.usage.cache_read_input_tokens // 0) \(.usage.output_tokens // 0) \(.num_turns // 0)"')"
