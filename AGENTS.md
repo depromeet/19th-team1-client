@@ -52,7 +52,7 @@ GitHub 에서 읽거나(`gh api repos/depromeet/<레포>/contents/<경로>`) 옆
 
 - 웹 패키지 추가: `pnpm --filter @team1/web add <패키지>`. 앱 패키지는 `apps/mobile` 에서 `npx expo install <패키지>`.
 - npm·yarn·bun 은 쓰지 않는다 (훅이 막는다).
-- 공개된 지 7일이 안 된 버전은 설치되지 않는다 (`pnpm-workspace.yaml` 의 `minimumReleaseAge`). 설치가 실패하면 예외를 넣지 말고 사람에게 알린다.
+- 공개된 지 7일이 안 된 버전은 새로 설치되지 않는다 (`pnpm-workspace.yaml` 의 `minimumReleaseAge`, 잠금 파일에 이미 있는 버전은 예외). 설치가 실패하면 예외를 넣지 말고 사람에게 알린다.
 
 ## 팀 코드에서 지킬 것
 

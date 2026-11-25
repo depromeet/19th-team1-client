@@ -40,14 +40,15 @@ Claude Code 와 Codex 로 이 레포를 작업할 때 무엇이 자동으로 걸
 에이전트가 셸 명령을 실행하려는 순간에만 걸린다. 사람이 터미널에서 직접 치는 명령에는 영향이 없다.
 확인 창을 띄우지 않고 바로 거절하므로, 권한을 풀고 쓰는 세션도 멈춰 기다리지 않는다.
 
-| 막는 것                    | 예                                    | 대신                                   |
-| -------------------------- | ------------------------------------- | -------------------------------------- |
-| `.env`·키 파일을 셸로 읽기 | `cat apps/web/.env.local`             | 어떤 키가 필요한지는 `.env.example`    |
-| 검사 건너뛰기              | `git commit --no-verify` · `HUSKY=0`  | 실패 원인을 고친다                     |
-| lease 없는 강제 푸시       | `git push --force` · `-f` · `+브랜치` | `git push --force-with-lease`          |
-| npm·yarn·bun 설치          | `npm install zod`                     | `pnpm --filter …` · `npx expo install` |
+| 막는 것                    | 예                                            | 대신                                   |
+| -------------------------- | --------------------------------------------- | -------------------------------------- |
+| `.env`·키 파일을 셸로 읽기 | `cat .env.local` · `grep KEY .env`            | 어떤 키가 필요한지는 `.env.example`    |
+| 검사 건너뛰기              | `git commit --no-verify` · `-n` · `HUSKY=0`   | 실패 원인을 고친다                     |
+| lease 없는 강제 푸시       | `git push --force` · `-f` · `-fv` · `+브랜치` | `git push --force-with-lease`          |
+| npm·yarn·bun 설치          | `npm install zod`                             | `pnpm --filter …` · `npx expo install` |
 
 - `.env` · `.env.local` · `.env.*.local` · `.env.development` · `.env.production` · `.env.test` · `.env.staging` 과 키 파일(`*.pem` · `*.key`)은 Claude 의 파일 읽기 도구로도 열리지 않는다(`permissions.deny`). `.env.example` 은 열린다. 셸로 읽기는 이름과 상관없이 `.env.*`(example 제외)를 막는다.
+- 셸 막기는 **읽기 명령**(`cat` · `less` · `head` · `tail` · `grep` · `rg` · `sed` · `awk` · `source` · `base64` 등)으로 여는 것만 본다. `node -e` · `python -c` 처럼 프로그램 안에서 파일을 읽는 우회까지 다 막지는 못한다 — 실수로 여는 것을 막는 장치이지 완전한 차단이 아니다.
 - 위 막기와 deny 는 Claude 의 권한 우회 모드에서도 걸린다(Claude Code 문서: 훅은 모든 권한 모드에서 먼저 돌고, deny 규칙은 우회 모드에서도 막는다).
 - 개인적으로 훅을 끄고 싶으면 `.claude/settings.local.json` 에 `"disableAllHooks": true` — 막기까지 전부 꺼지니 권하지 않는다.
 

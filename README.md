@@ -69,5 +69,5 @@ E2E 는 3000 에 떠 있는 서버를 그대로 쓴다 — 우리 웹(`pnpm dev:
 ## 에이전트 (Claude Code · Codex)
 
 에이전트가 읽는 정본은 [`AGENTS.md`](AGENTS.md), 사람용 사용법은 [`docs/agent-guide.md`](docs/agent-guide.md).
-팀에 피해가 가는 명령(`.env` 읽기 · 검사 건너뛰기 · lease 없는 강제 푸시 · npm·yarn·bun 설치)은 훅이 막는다. Codex 는 처음에 프로젝트 신뢰와 `/hooks` 승인이 필요하다.
+팀에 피해가 가는 명령(읽기 명령으로 `.env` 열기 · 검사 건너뛰기 · lease 없는 강제 푸시 · npm·yarn·bun 설치)은 훅이 막는다. Codex 는 처음에 프로젝트 신뢰와 `/hooks` 승인이 필요하다.
 코드 기준은 [`docs/code-standards.md`](docs/code-standards.md) (지금은 초안).

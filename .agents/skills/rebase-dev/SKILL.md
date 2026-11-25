@@ -19,5 +19,5 @@ description: 브랜치를 최신 dev 위로 올린다. 앞 PR 이 Squash 병합�
 4. 충돌이 나면 파일마다 양쪽 의도를 읽고 푼다. 의도가 갈려 하나를 골라야 하면 `git rebase --abort` 로 되돌리고, 갈린 곳과 두 선택지를 보고한다.
 5. `pnpm install` (lockfile 이 바뀌었으면) → `pnpm lint && pnpm typecheck`.
 6. 이미 푸시한 브랜치면 `git push --force-with-lease`. `--force` 는 쓰지 않는다(훅이 막는다). 푸시는 사람이 시킬 때.
-   PR 이 앞 브랜치를 대상으로 하고 있었으면 대상을 `dev` 로 바꾼다: `gh pr edit <번호> --base dev`.
+   **앞 PR 이 병합돼 `--onto` 로 옮긴 경우에만** PR 대상을 `dev` 로 바꾼다: `gh pr edit <번호> --base dev`. 앞 PR 이 아직 열려 있으면 대상은 그대로 둔다(바꾸면 앞 PR 의 변경까지 이 PR 에 보인다).
 7. 보고 — 새로 들어온 `dev` 변경을 짧게 브리핑한다(이 작업과 겹치는 것 먼저), 푼 충돌, 검사 결과.
