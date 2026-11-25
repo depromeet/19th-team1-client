@@ -12,34 +12,48 @@ export const RULES = [
     id: 'env-file',
     name: '환경 변수·키 파일을 셸로 읽기',
     pattern:
-      /(^|[\s;&|(])(cat|less|more|head|tail|bat|grep|rg|awk|sed|source|\.|xxd|strings|base64|nl|open)\s[^;&|]*?(^|[\s/'"=])(\.env(\.(?!example\b)[\w.-]+)?|[\w.-]+\.(pem|key|p12|p8)|id_(rsa|ed25519))(?=$|[\s'";&|)])/,
+      /(^|[\s;&|(])(cat|less|more|head|tail|bat|grep|rg|awk|sed|source|\.|xxd|strings|base64|nl|open)\s(?:[^;&|\n]*?[\s/'"=])?(\.env(\.(?!example\b)[\w.-]+)?|[\w.-]+\.(pem|key|p12|p8)|id_(rsa|ed25519))(?=$|[\s'";&|)])/m,
     why: '공개 레포라 값이 대화·로그로 새면 바로 교체해야 합니다. 어떤 키가 필요한지는 .env.example 을 보세요.',
   },
   {
     id: 'no-verify',
     name: '커밋·푸시 검사 건너뛰기',
-    pattern: /\bgit\b[^;&|]*\s--no-verify\b|\bHUSKY=0\b/,
+    // commit 의 -n 은 --no-verify 와 같다(push 의 -n 은 dry-run 이라 걸지 않는다)
+    pattern:
+      /\bgit\b[^;&|\n]*\s--no-verify\b|\bgit\b[^;&|\n]*\bcommit\b[^;&|\n]*\s-[a-zA-Z]*n[a-zA-Z]*(?=\s|$)|\bHUSKY=0\b/m,
     why: '린트·커밋 메시지·타입 검사를 건너뜁니다. 검사가 실패하면 원인을 고쳐 주세요.',
   },
   {
     id: 'force-push',
     name: 'lease 없는 강제 푸시',
     pattern:
-      /\bgit\b[^;&|]*\bpush\b[^;&|]*(\s--force(?![-\w])|\s-[a-zA-Z]*f\b|\s\+[\w/.-]+)/,
+      /\bgit\b[^;&|\n]*\bpush\b[^;&|\n]*(\s--force(?![-\w])|\s-[a-zA-Z]*f[a-zA-Z]*(?=\s|$)|\s\+[\w/.-]+)/m,
     why: '원격의 남의 커밋을 덮어씁니다. 자기 브랜치에서 --force-with-lease 로만 강제 푸시합니다.',
   },
   {
     id: 'npm-yarn',
     name: 'npm·yarn·bun 으로 패키지 설치',
     pattern:
-      /(^|[;&|(]\s*)(npm\s+(i|install|add|ci|uninstall|remove|rm|update)\b|yarn\b|bun\s+(add|install|remove)\b)/,
+      /(?:^|[;&|(\n])\s*(npm\s+(i|install|add|ci|uninstall|remove|rm|update)\b|yarn\b|bun\s+(add|install|remove)\b)/,
     why: '이 레포는 pnpm 만 씁니다(lockfile 이 갈라짐). 웹은 pnpm --filter, 앱은 apps/mobile 에서 npx expo install.',
   },
 ];
 
-/** heredoc 본문은 실행되는 명령이 아니라 파일·메시지에 쓰는 글이라 검사에서 뺀다 */
+/**
+ * heredoc 본문은 실행되는 명령이 아니라 파일·메시지에 쓰는 글이라 검사에서 뺀다.
+ * 시작 줄의 나머지(`<<'EOF'; cat .env`)는 실행되므로 남기고, 따옴표 없는 heredoc 은
+ * 본문의 명령 치환(`$(…)` · 백틱)이 실행되므로 그것만 남긴다.
+ */
 export function stripHeredoc(command) {
-  return command.replace(/<<-?\s*(['"]?)(\w+)\1[\s\S]*?\n\s*\2\b/g, ' ');
+  return command.replace(
+    /<<-?\s*(['"]?)(\w+)\1([^\n]*)\n([\s\S]*?)\n\s*\2\b/g,
+    (_, quote, _tag, rest, body) => {
+      const substitutions = quote
+        ? []
+        : (body.match(/\$\([^)]*\)|`[^`]*`/g) ?? []);
+      return ` ${rest} ${substitutions.join(' ')} `;
+    },
+  );
 }
 
 /** 걸린 규칙 목록. 없으면 null */
@@ -67,7 +81,11 @@ function main() {
   });
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+// 스크립트로 실행될 때만 — import 될 때(시험 · node -e)는 돌지 않는다
+if (
+  process.argv[1] &&
+  import.meta.url === pathToFileURL(process.argv[1]).href
+) {
   try {
     main();
   } catch {
