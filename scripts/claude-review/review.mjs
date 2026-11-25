@@ -4,8 +4,8 @@
 //   node scripts/claude-review/review.mjs review   # .claude-review/review.diff → .claude-review/result.json
 //   node scripts/claude-review/review.mjs post     # result.json → PR 리뷰 하나(줄 댓글들)
 //
-// review 의 SDK 는 CI 가 레포 밖 임시 폴더에 고정 버전으로 설치하고 CLAUDE_AGENT_SDK 로 경로를 준다
-// (플랫폼별 실행 파일이 커서 레포 의존성에 넣지 않는다). 로컬에서는 그 경로만 주면 같은 리뷰가 돈다.
+// SDK 는 이 폴더의 package.json · pnpm-lock.yaml 로만 설치한다(워크스페이스 밖 — 플랫폼별 실행 파일이 커서
+// 팀원 설치에 섞지 않는다). 로컬: pnpm install --dir scripts/claude-review --ignore-workspace --frozen-lockfile
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
@@ -59,9 +59,7 @@ export function commentableLines(diff) {
 }
 
 async function review() {
-  const sdkPath = process.env.CLAUDE_AGENT_SDK;
-  if (!sdkPath) throw new Error('CLAUDE_AGENT_SDK 에 SDK 경로를 준다');
-  const { query } = await import(pathToFileURL(sdkPath).href);
+  const { query } = await import('@anthropic-ai/claude-agent-sdk');
   const prompt = [
     '.github/claude-review.md 를 읽고 그대로 리뷰한다.',
     `레포: ${process.env.REPO} · PR #${process.env.PR}`,

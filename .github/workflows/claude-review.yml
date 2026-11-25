@@ -65,20 +65,18 @@ jobs:
             echo "lines=$lines"
           } >> "$GITHUB_OUTPUT"
 
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
+        if: ${{ steps.range.outputs.lines != '0' }}
+
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         if: ${{ steps.range.outputs.lines != '0' }}
         with:
           node-version-file: .nvmrc
 
-      # Agent SDK — 레포 밖 임시 폴더에 고정 버전으로(플랫폼별 실행 파일이 커서 레포 의존성에 넣지 않는다).
-      # 레포 패키지가 아니라 pnpm 규칙과 상관없다. 피어 의존성은 쓰지 않아 받지 않는다
+      # Agent SDK — 리뷰 스크립트 폴더의 잠금 파일 그대로(워크스페이스 밖이라 팀원 설치에 섞이지 않는다)
       - name: Agent SDK 설치
         if: ${{ steps.range.outputs.lines != '0' }}
-        working-directory: ${{ runner.temp }}
-        run: |
-          mkdir -p sdk && cd sdk
-          npm install --no-save --no-package-lock --ignore-scripts --legacy-peer-deps --no-audit --no-fund @anthropic-ai/claude-agent-sdk@0.3.327
-          echo "CLAUDE_AGENT_SDK=$PWD/node_modules/@anthropic-ai/claude-agent-sdk/sdk.mjs" >> "$GITHUB_ENV"
+        run: pnpm install --dir scripts/claude-review --ignore-workspace --frozen-lockfile --ignore-scripts --config.auto-install-peers=false
 
       # 리뷰는 API 키만 받는다 — 지적은 파일(.claude-review/result.json)로만 낸다.
       # Agent SDK 로 부른다: GitHub Action 진입점은 이 키의 크레딧이 적용되지 않는다(결정 기록 0005)
