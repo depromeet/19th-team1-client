@@ -13,6 +13,7 @@ import { pathToFileURL } from 'node:url';
 const DIR = '.claude-review';
 const SEVERITIES = ['필수', '제안', '질문'];
 
+// 모델은 칸만 채우고, 댓글 모양은 formatFinding 이 정한다 — 매번 같은 모양으로 읽히게
 const SCHEMA = {
   type: 'object',
   properties: {
@@ -27,17 +28,128 @@ const SCHEMA = {
             description: '바뀐 파일의 실제 줄 번호(diff 의 + 쪽)',
           },
           severity: { type: 'string', enum: SEVERITIES },
-          kind: { type: 'string', description: '`C-xx` 또는 `결함`' },
-          title: { type: 'string', description: '한 줄 요지' },
-          body: { type: 'string', description: '근거 → 고치는 법, 두세 줄' },
+          kind: {
+            type: 'string',
+            description:
+              '`결함` 또는 장부 번호와 이름(`C-17 로딩은 위에서 끊는다`)',
+          },
+          title: {
+            type: 'string',
+            description:
+              '무슨 일이 생기나 — 사람이 겪는 결과 한 문장. 코드 · 정규식 없이',
+          },
+          repro: {
+            type: 'string',
+            description: '재현 입력(명령 · 코드 그대로). 없으면 빈 문자열',
+          },
+          happens: {
+            type: 'string',
+            description:
+              '그 입력이면 실제로 어떻게 되나 한 문장. 없으면 빈 문자열',
+          },
+          cause: {
+            type: 'string',
+            description: '원인 한 문장 — 코드 · 정규식 없이 동작으로',
+          },
+          fix: { type: 'string', description: '고치는 법 한두 문장' },
+          fixCode: {
+            type: 'string',
+            description:
+              '고친 코드나 더할 시험(그대로 붙일 수 있게). 없으면 빈 문자열',
+          },
         },
-        required: ['path', 'line', 'severity', 'kind', 'title', 'body'],
+        required: [
+          'path',
+          'line',
+          'severity',
+          'kind',
+          'title',
+          'repro',
+          'happens',
+          'cause',
+          'fix',
+          'fixCode',
+        ],
       },
     },
-    summary: { type: 'string', description: '다섯 줄 안의 요약' },
+    scope: {
+      type: 'string',
+      description: '본 범위 한 문장(무엇을 어떤 순서로 봤나)',
+    },
+    checked: {
+      type: 'string',
+      description: '지적은 아니지만 확인한 것 한두 문장. 없으면 빈 문자열',
+    },
   },
-  required: ['findings', 'summary'],
+  required: ['findings', 'scope', 'checked'],
 };
+
+// 공개 댓글에 키가 섞여 나가지 않게 — PR 안 글이 리뷰어에게 환경 변수를 읽어 적으라고 시킬 수 있다
+const SECRET =
+  /sk-ant-[\w-]{8,}|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_\w{20,}/g;
+export const redact = (text) => text.replace(SECRET, '[가림]');
+
+const ICON = { 필수: '🔴', 제안: '🟡', 질문: '⚪' };
+
+const fence = (text) => `\`\`\`\n${text.trim()}\n\`\`\``;
+
+/** 지적의 첫 줄 — 중복 확인에도 쓴다 */
+export function findingHead(finding) {
+  return `**${ICON[finding.severity] ?? ''} ${finding.severity} · ${finding.kind}** — ${finding.title}`;
+}
+
+/** 줄 댓글 본문 — 재현 → 원인 → 고치기 */
+export function formatFinding(finding) {
+  const parts = [findingHead(finding)];
+  if (finding.repro?.trim()) {
+    parts.push(`**재현**\n${fence(finding.repro)}`);
+    if (finding.happens?.trim()) parts.push(finding.happens.trim());
+  }
+  parts.push(`**원인** ${finding.cause.trim()}`);
+  parts.push(`**고치기** ${finding.fix.trim()}`);
+  if (finding.fixCode?.trim()) parts.push(fence(finding.fixCode));
+  return parts.join('\n\n');
+}
+
+/** 요약 댓글 본문 — 결론 한 줄 → 지적 표 → 본 범위 */
+export function formatSummary(result, outsidePaths = new Set()) {
+  const count = (severity) =>
+    result.findings.filter((finding) => finding.severity === severity).length;
+  const lines = [];
+  if (result.findings.length === 0) {
+    lines.push('**지적 없음**');
+  } else {
+    const must = count('필수');
+    lines.push(
+      `**필수 ${must} · 제안 ${count('제안')} · 질문 ${count('질문')}**${must > 0 ? ` — 병합 전에 ${must}건 고칠 것` : ''}`,
+      '',
+      '| | 무슨 일 | 위치 |',
+      '| --- | --- | --- |',
+      ...result.findings.map((finding) => {
+        const where = `\`${finding.path}:${finding.line}\``;
+        const mark = outsidePaths.has(`${finding.path}:${finding.line}`)
+          ? ' (diff 밖 — 아래)'
+          : '';
+        return `| ${ICON[finding.severity] ?? ''} ${finding.severity} | ${finding.title.replaceAll('|', '\\|')} | ${where}${mark} |`;
+      }),
+    );
+    const outside = result.findings.filter((finding) =>
+      outsidePaths.has(`${finding.path}:${finding.line}`),
+    );
+    if (outside.length > 0) {
+      lines.push(
+        '',
+        '<details><summary>diff 밖 줄이라 줄 댓글을 달지 못한 지적</summary>',
+        '',
+        ...outside.map((finding) => formatFinding(finding)),
+        '</details>',
+      );
+    }
+  }
+  lines.push('', `본 범위: ${result.scope ?? ''}`);
+  if (result.checked?.trim()) lines.push(`확인한 것: ${result.checked.trim()}`);
+  return lines.join('\n');
+}
 
 /** diff 에서 파일마다 댓글을 달 수 있는 줄(+ 쪽의 추가 · 문맥 줄) */
 export function commentableLines(diff) {
@@ -65,7 +177,7 @@ async function review() {
     `레포: ${process.env.REPO} · PR #${process.env.PR}`,
     `범위(${process.env.KIND}, ${process.env.RANGE}): ${DIR}/review.diff`,
     `이미 달린 줄 댓글: ${DIR}/existing.jsonl (같은 줄 · 같은 내용이면 다시 달지 않는다)`,
-    '지적은 댓글로 달지 않고 정해진 출력 형식의 findings 로만 낸다. summary 가 요약이다.',
+    '지적은 댓글로 달지 않고 정해진 출력 형식의 칸으로만 낸다. 칸마다 설명을 지킨다.',
   ].join('\n');
 
   let result = null;
@@ -96,7 +208,8 @@ async function review() {
         error: failed
           ? String(result?.result ?? result?.errors?.join(' · ') ?? '결과 없음')
           : null,
-        summary: output.summary ?? '',
+        scope: output.scope ?? '',
+        checked: output.checked ?? '',
         findings: Array.isArray(output.findings) ? output.findings : [],
         cost: result?.total_cost_usd ?? 0,
         turns: result?.num_turns ?? 0,
@@ -121,9 +234,9 @@ async function post() {
     .map((row) => JSON.parse(row));
 
   const comments = [];
-  const outside = [];
+  const outside = new Set();
   for (const finding of result.findings) {
-    const head = `[${finding.severity}] [${finding.kind}] ${finding.title}`;
+    const head = findingHead(finding);
     const duplicate = existing.some(
       (c) =>
         c.path === finding.path &&
@@ -136,11 +249,11 @@ async function post() {
         path: finding.path,
         line: finding.line,
         side: 'RIGHT',
-        body: `${head}\n\n${finding.body}`,
+        body: redact(formatFinding(finding)),
       });
     } else {
       // diff 밖 줄에는 GitHub 가 댓글을 받지 않는다(리뷰 전체가 거절됨) — 요약으로 옮긴다
-      outside.push(`- \`${finding.path}:${finding.line}\` ${head}`);
+      outside.add(`${finding.path}:${finding.line}`);
     }
   }
 
@@ -166,8 +279,8 @@ async function post() {
         `리뷰 게시 실패 ${response.status}: ${await response.text()}`,
       );
   }
-  writeFileSync(`${DIR}/outside.md`, outside.join('\n'));
-  console.log(`줄 댓글 ${comments.length} · 줄 밖 ${outside.length}`);
+  writeFileSync(`${DIR}/summary.md`, redact(formatSummary(result, outside)));
+  console.log(`줄 댓글 ${comments.length} · 줄 밖 ${outside.size}`);
 }
 
 if (

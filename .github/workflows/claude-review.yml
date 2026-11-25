@@ -119,11 +119,8 @@ jobs:
           r=.claude-review/result.json
           [ -s "$r" ] || echo '{"ok":false,"error":"리뷰 결과 파일이 없다 — 실행 기록을 본다"}' > "$r"
           OK=$(jq -r '.ok' "$r")
-          summary=$(jq -r '.summary // ""' "$r")
-          outside=$(cat .claude-review/outside.md 2>/dev/null || true)
-          if [ -n "$outside" ]; then
-            summary=$(printf '%s\n\n**diff 밖 줄이라 줄 댓글 대신 여기 적은 지적**\n%s' "$summary" "$outside")
-          fi
+          # 요약 본문은 줄 댓글 단계가 만든 것(결론 → 지적 표 → 본 범위)
+          summary=$(cat .claude-review/summary.md 2>/dev/null || true)
           [ "$OK" = "true" ] || summary=$(jq -r '.error // ""' "$r")
           # 줄 댓글을 못 달았으면 리뷰를 마친 것으로 치지 않는다 — 다음 리뷰가 다시 본다
           if [ "$OK" = "true" ] && [ "$POSTED" != "success" ]; then OK=false; summary="줄 댓글을 달지 못했다 — 실행 기록을 본다"; fi
