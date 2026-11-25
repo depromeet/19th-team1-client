@@ -13,7 +13,7 @@ Expo 앱 안에 Next.js 웹을 웹뷰로 띄우는 pnpm 모노레포다. 서버(
 | `apps/mobile`            | Expo SDK 58 — 웹뷰를 감싸는 셸. 푸시·사진 같은 네이티브 기능만            |
 | `packages/shared`        | 웹과 앱이 함께 쓰는 코드                                                  |
 | `packages/eslint-config` | 공용 ESLint 설정                                                          |
-| `scripts/agent-hooks`    | 에이전트 훅 (위험 명령 · 수정 직후 린트 · 완료 관문)                      |
+| `scripts/agent-hooks`    | 위험 명령 막기 훅 (Claude · Codex 공통)                                   |
 | `.agents/skills`         | 스킬 정본 (`.claude/skills` 는 이 폴더를 가리키는 링크)                   |
 
 웹 스택: Tailwind 4 · TanStack Query 5 · Zod 4 · React Hook Form 7 · Vitest + Testing Library · Playwright.
@@ -27,30 +27,26 @@ Expo 앱 안에 Next.js 웹을 웹뷰로 띄우는 pnpm 모노레포다. 서버(
 | `pnpm lint` · `pnpm typecheck` · `pnpm test` | 전체 린트 · 타입 검사 · 단위 테스트        |
 | `pnpm --filter @team1/web <명령>`            | 웹만 (예: `pnpm --filter @team1/web test`) |
 | `pnpm test:e2e`                              | 웹 E2E (Playwright)                        |
-| `pnpm test:hooks`                            | 에이전트 훅 시험                           |
+| `pnpm test:hooks`                            | 위험 명령 막기 훅 시험                     |
 
 - 웹 패키지 추가: `pnpm --filter @team1/web add <패키지>`. 앱 패키지는 `apps/mobile` 에서 `npx expo install <패키지>`.
 - npm·yarn 은 쓰지 않는다 (훅이 막는다).
 - 공개된 지 7일이 안 된 버전은 설치되지 않는다 (`pnpm-workspace.yaml` 의 `minimumReleaseAge`). 설치가 실패하면 예외를 넣지 말고 사람에게 알린다.
 
-## 일하는 방식
+## 팀 코드에서 지킬 것
 
-- 시작할 때 한 줄로 적는다: `이렇게 이해했습니다: <하는 것> / <안 하는 것>`.
-- 이럴 때만 멈추고 묻는다. 나머지는 가정을 적고 진행한다.
-  1. 되돌릴 수 없는 일 (지우기, 원격에 올리기, 남의 브랜치 건드리기)
-  2. 고르는 쪽에 따라 다른 화면·동작이 나오는 갈림길
-  3. 받은 내용(요청·디자인·API 문서)에 없는 값 — 문구, 숫자, 필드 이름을 지어내지 않는다
+- 받은 내용(요청·디자인·API 문서)에 없는 값 — 문구, 숫자, 필드 이름을 지어내지 않는다.
 - 요청 범위 밖은 고치지 않는다. 기능이 바뀌지 않는 정리(이름, 순서)만 같은 작업에 넣을 수 있다. 큰 파일 쪼개기 같은 구조 변경은 따로 한다.
 - 커밋·푸시·PR 은 사람이 시킬 때만 한다. 시키면 `commit` · `pr` 스킬을 따른다.
 - 고치기 전에 지금 코드를 읽는다. 옆 파일의 모양을 따르되, "기존 코드도 그렇다"는 기준을 어길 이유가 아니다.
 - 실패는 사용자에게 보이게 한다. 조회·저장 실패를 빈 목록이나 무반응으로 그리지 않는다.
 
-## 완료의 정의
+## PR 을 올리기 전
 
-- 코드를 고쳤으면 끝내기 전에 `self-review` 스킬을 돌리고 그 결과 표를 보고에 싣는다.
-  안 돌리고 끝내려 하면 완료 관문(stop-gate 훅)이 한 번 돌려보낸다. 검사할 필요가 없으면 `검사 생략: <사유>` 를 적는다.
-- 결과 표에 ⚠️(어긋남 → 남김)가 있으면 "완료"나 "문제 없음"이라고 쓰지 않는다. 남은 것은 PR 리뷰 포인트로 넘긴다.
-- 화면을 바꿨으면 직접 열어 확인한다. 볼 수 없으면 `화면 확인 필요: <이유>` 로 남긴다.
+- `pnpm lint` · `pnpm typecheck` · `pnpm test` 가 통과한다. 실패를 숨기거나 검사를 건너뛰지 않는다(`--no-verify` 는 훅이 막는다).
+- 기준(`C-xx`)에서 어긋난 채 남긴 것은 PR 본문 "리뷰 포인트"에 번호와 이유로 적는다.
+- 화면을 바꿨으면 PR 에 스크린샷을 붙인다. 에이전트가 붙일 수 없으면 사람에게 알린다.
+- 완료 검사·화면 확인·보고 방식 같은 작업 절차는 각자 개인 에이전트 설정에 둔다. 이 레포는 결과(코드·PR)의 기준만 정한다.
 
 ## 보안
 
@@ -69,10 +65,10 @@ Expo 앱 안에 Next.js 웹을 웹뷰로 띄우는 pnpm 모노레포다. 서버(
 | `.claude/rules/web.md`        | `apps/web/**` 를 고칠 때                    |
 | `.claude/rules/mobile.md`     | `apps/mobile/**` 를 고칠 때                 |
 | `.claude/rules/typescript.md` | `.ts` · `.tsx` 를 고칠 때                   |
-| `docs/code-standards.md`      | self-review 로 대조할 때, 기준을 더할 때    |
+| `docs/code-standards.md`      | 리뷰에서 번호를 볼 때, 기준을 더할 때       |
 | `docs/decisions/`             | 이미 정한 것을 뒤집고 싶을 때 (먼저 읽는다) |
 
-Claude 는 `paths` 머리말로 위 룰을 자동으로 읽는다. Codex 는 그 영역을 처음 고칠 때 훅이 본문을 넣어 준다.
+Claude 는 `paths` 머리말로 위 룰을 자동으로 읽는다. **Codex 는 자동으로 읽지 않는다** — 그 영역 파일을 고치기 전에 위 룰 파일을 직접 읽는다.
 
 ## 스킬
 
@@ -81,7 +77,6 @@ Claude 는 `paths` 머리말로 위 룰을 자동으로 읽는다. Codex 는 그
 | `commit`         | 커밋하라고 할 때 — 관심사별로 나눠 커밋                |
 | `pr`             | PR 을 올리라고 할 때 — 검사 → 푸시 → PR → AI 리뷰 요청 |
 | `sync`           | `dev` 에 맞추라고 할 때, 앞 PR 이 병합된 뒤            |
-| `self-review`    | 코드를 고친 작업을 끝내기 전 (완료 검사)               |
 | `review-respond` | PR 리뷰 댓글에 대응할 때                               |
 | `add-standard`   | 같은 지적이 두 번째 나왔을 때 — 기준 장부에 올림       |
 

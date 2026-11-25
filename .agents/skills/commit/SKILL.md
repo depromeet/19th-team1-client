@@ -9,7 +9,7 @@ description: 사람이 커밋하라고 할 때 쓴다. 바뀐 파일을 이번 �
 
 1. `git status --short` 와 `git diff` 로 바뀐 파일을 본다. 파일마다 **이번 작업인지** 가른다.
    이번 작업이 아닌 파일(다른 작업의 변경, 생성물, 실험 파일)은 커밋하지 않고 보고에 적는다.
-2. 코드를 고친 작업이면 `self-review` 를 먼저 돌렸는지 본다. 안 돌렸으면 돌린다.
+2. 코드를 고친 작업이면 바뀐 워크스페이스의 `lint` · `typecheck` 가 통과하는지 본다.
 3. 관심사별로 나눈다. 한 커밋 = 리뷰어가 한 번에 이해할 한 가지 변경. 기능 변경과 정리(이름·순서)는 나눈다.
 4. 메시지는 `commitlint.config.mjs` 규칙을 따른다: `<type>(<scope>): <한글 내용>`.
    - type: `feat fix refactor style docs chore test ci build perf`
