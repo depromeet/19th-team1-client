@@ -62,7 +62,7 @@ export function stripHeredoc(command) {
 
 // git · gh 명령(명령 자리에 온 것만 — `.git/HEAD` 같은 경로는 아님) 안의 메시지 인자 하나 — 앞부분 · 따옴표 · 내용. 작은따옴표 안에는 이스케이프가 없다
 const MESSAGE_ARG =
-  /((?:^|[;&|(\n])\s*(?:git|gh)\s[^;&|\n]*?\s(?:-[a-zA-Z]*m|--message|--body|--title|--notes|-[bt])[\s=]+)(?:"((?:\\.|[^"\\])*)"|'([^']*)')/;
+  /((?:^|[;&|(\n])\s*(?:git|gh)\s[^;&|)\n]*?\s(?:-[a-zA-Z]*m|--message|--body|--title|--notes|-[bt])[\s=]+)(?:"((?:\\.|[^"\\])*)"|'([^']*)')/;
 
 /**
  * git · gh 의 커밋 메시지 · PR 제목 · 본문 인자(`-m "…"` · `--body "…"` 등)는 글이라 비운다.

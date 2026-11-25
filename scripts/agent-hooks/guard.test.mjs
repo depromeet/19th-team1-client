@@ -47,6 +47,7 @@ const CASES = [
   ["/bin/bash <<'EOF'\nnpm install zod\nEOF", 'deny'],
   ['git commit -m "$(cat "x" .env)"', 'deny'],
   ['cat .git/HEAD -b ".env"', 'deny'],
+  ['cat $(git rev-parse HEAD) -b ".env"', 'deny'],
   ['echo x && git commit -m "docs: cat .env 안내" && cat .env', 'deny'],
   // 통과 — 자기 작업만 잃는 명령은 팀 훅이 다루지 않는다 (각자 설정 몫)
   ['git push origin feat/a', 'pass'],
