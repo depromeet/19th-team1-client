@@ -51,7 +51,7 @@ GitHub 에서 읽거나(`gh api repos/depromeet/<레포>/contents/<경로>`) 옆
 | `pnpm test:hooks`                            | 위험 명령 막기 훅 시험                     |
 
 - 웹 패키지 추가: `pnpm --filter @team1/web add <패키지>`. 앱 패키지는 `apps/mobile` 에서 `npx expo install <패키지>`.
-- npm·yarn 은 쓰지 않는다 (훅이 막는다).
+- npm·yarn·bun 은 쓰지 않는다 (훅이 막는다).
 - 공개된 지 7일이 안 된 버전은 설치되지 않는다 (`pnpm-workspace.yaml` 의 `minimumReleaseAge`). 설치가 실패하면 예외를 넣지 말고 사람에게 알린다.
 
 ## 팀 코드에서 지킬 것
@@ -80,7 +80,7 @@ GitHub 에서 읽거나(`gh api repos/depromeet/<레포>/contents/<경로>`) 옆
 
 기준 정본은 `docs/code-standards.md` (번호 `C-xx`). 지금은 전부 초안이고 PR 리뷰로 확정한다.
 기계(ESLint·훅·CI)가 막는 것은 여기 다시 쓰지 않는다 — `any` · `!` · 이중 단언 · 객체 모양 `type` · `@ts-ignore` · 상위 폴더 상대 경로 · `process.env` 직접 접근 · import 순서 · `<div onClick>`·이름 없는 아이콘 버튼 · React 훅 규칙(효과 안 setState · 의존성 · 순수성 등, eslint-config-next 경유) · React Query 규칙. 경고도 `--max-warnings=0` 이라 막힌다.
-긴 설명과 코드 예시는 장부에 있다. 경로별 룰은 번호와 한 줄만 둔다.
+이 중 `@ts-ignore` · import 순서 · `console.log` 는 장부 번호 없이 린트 메시지로 충분하다. 긴 설명과 코드 예시는 장부에 있다. 경로별 룰은 번호와 한 줄만 둔다.
 
 | 파일                          | 언제 읽나                                   |
 | ----------------------------- | ------------------------------------------- |

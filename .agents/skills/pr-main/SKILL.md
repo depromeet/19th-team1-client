@@ -18,6 +18,7 @@ description: dev 를 main 으로 올리는 배포 PR 을 만든다. 지난 배�
    git diff --stat origin/main origin/dev -- '**/.env.example' '**/package.json' pnpm-lock.yaml '**/next.config.*' '**/app.json'
    ```
    새 환경 변수가 있으면 Vercel(Production)·EAS 에 넣어야 한다고 본문과 보고에 적는다. 에이전트가 넣지 않는다.
+   포함된 PR 이 새 서버 API 나 바뀐 응답에 기대면, 그 서버 변경이 **운영 서버에 먼저 나갔는지** 서버 파트에 확인한다 — 웹이 먼저 나가면 운영 화면이 깨진다. 확인 못 했으면 본문 "배포 전 확인"에 적고 체크하지 않는다.
 4. **PR** — `.github/PULL_REQUEST_TEMPLATE/release.md` 를 채운다. 제목은 `release: <배포 내용>` (CI 가 검사).
    ```bash
    gh pr create --base main --head dev --title "release: <배포 내용>" --body-file <채운 본문>

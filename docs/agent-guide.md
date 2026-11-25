@@ -13,7 +13,7 @@ Claude Code 와 Codex 로 이 레포를 작업할 때 무엇이 자동으로 걸
 | 위험 명령 막기 4개 (`.env` · 검사 건너뛰기 · 강제 푸시 · npm) | 자기 작업만 잃는 명령(`reset --hard` 등)을 막을지 |
 | 커밋·PR·리뷰 규칙과 그 스킬                                   | 권한 모드(확인 창을 띄울지), 워크트리, 알림       |
 
-위로 갈수록 세게 걸린다: ESLint·CI(매번 막음) → 막기 훅(에이전트 명령만) → `AGENTS.md`·룰·장부(읽었을 때 지켜짐).
+걸리는 세기는 이 순서로 약해진다: ESLint·CI(매번 막음) → 막기 훅(에이전트 명령만) → `AGENTS.md`·룰·장부(읽었을 때 지켜짐).
 
 ## 처음 한 번
 
@@ -47,7 +47,7 @@ Claude Code 와 Codex 로 이 레포를 작업할 때 무엇이 자동으로 걸
 | lease 없는 강제 푸시       | `git push --force` · `-f` · `+브랜치` | `git push --force-with-lease`          |
 | npm·yarn·bun 설치          | `npm install zod`                     | `pnpm --filter …` · `npx expo install` |
 
-- `.env` 파일은 Claude 의 파일 읽기 도구로도 열리지 않는다(`permissions.deny`). `.env.example` 은 열린다.
+- `.env` · `.env.local` · `.env.*.local` · `.env.development` · `.env.production` · `.env.test` · `.env.staging` 과 키 파일(`*.pem` · `*.key`)은 Claude 의 파일 읽기 도구로도 열리지 않는다(`permissions.deny`). `.env.example` 은 열린다. 셸로 읽기는 이름과 상관없이 `.env.*`(example 제외)를 막는다.
 - 위 막기와 deny 는 Claude 의 권한 우회 모드에서도 걸린다(Claude Code 문서: 훅은 모든 권한 모드에서 먼저 돌고, deny 규칙은 우회 모드에서도 막는다).
 - 개인적으로 훅을 끄고 싶으면 `.claude/settings.local.json` 에 `"disableAllHooks": true` — 막기까지 전부 꺼지니 권하지 않는다.
 
@@ -77,7 +77,7 @@ Claude Code 와 Codex 로 이 레포를 작업할 때 무엇이 자동으로 걸
 
 ## 코드 기준 장부
 
-`docs/code-standards.md` — 지금은 전부 **초안**이다. 이 PR 리뷰에서 항목마다 동의·반대를 달아 주세요.
+`docs/code-standards.md` — 지금은 전부 **초안**이다. 리뷰에서 항목마다 동의·반대를 달아 주세요.
 리뷰 코멘트에서 번호로 인용하면(`C-17`) 에이전트도 같은 번호로 찾아 고친다.
 기준을 더하거나 바꾸려면 장부를 고치는 PR 을 올린다.
 
