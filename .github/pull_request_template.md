@@ -36,4 +36,3 @@
 - [ ] 대상 브랜치가 `dev`
 - [ ] 로컬에서 `pnpm lint && pnpm typecheck` 통과
 - [ ] 화면 변경이면 스크린샷 첨부
-- [ ] CodeRabbit 리뷰 요청 — PR 을 올린 뒤 `@coderabbitai review` 댓글
