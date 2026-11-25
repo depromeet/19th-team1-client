@@ -17,6 +17,8 @@ export const teamRules = [
       ],
       // value! 는 "여기선 없을 리 없다"는 가정을 타입 검사에서 숨긴다 — 기본값·early return·분기로 처리한다
       '@typescript-eslint/no-non-null-assertion': 'error',
+      // 객체 모양은 interface, 유니온·함수·조합은 type 으로 한 가지만 쓴다 (C-39)
+      '@typescript-eslint/consistent-type-definitions': ['error', 'interface'],
       'no-restricted-syntax': [
         'error',
         {
