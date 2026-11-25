@@ -36,7 +36,7 @@ export const teamRules = [
           patterns: [
             {
               group: ['../*'],
-              message: '상위 폴더는 @/ 절대 경로로 가져와 주세요.',
+              message: '상위 폴더는 경로 별칭(웹은 @/)으로 가져와 주세요.',
             },
           ],
         },

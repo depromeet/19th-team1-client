@@ -21,6 +21,7 @@ const CASES = [
   ['git push origin +feat/a', 'deny'],
   ['npm install zod', 'deny'],
   ['cd apps/web && yarn add zod', 'deny'],
+  ['bun add zod', 'deny'],
   // 통과 — 자기 작업만 잃는 명령은 팀 훅이 다루지 않는다 (각자 설정 몫)
   ['git push origin feat/a', 'pass'],
   ['git push --force-with-lease origin feat/a', 'pass'],
@@ -59,7 +60,7 @@ test('훅 출력 모양 — 두 도구 공통 permissionDecision', () => {
     cwd: '.',
   });
   const out = JSON.parse(
-    execFileSync('node', [script, '--tool=codex'], { input, encoding: 'utf8' }),
+    execFileSync('node', [script], { input, encoding: 'utf8' }),
   );
   assert.equal(out.hookSpecificOutput.hookEventName, 'PreToolUse');
   assert.equal(out.hookSpecificOutput.permissionDecision, 'deny');

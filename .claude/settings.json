@@ -7,6 +7,8 @@
       "Read(**/.env.*.local)",
       "Read(**/.env.development)",
       "Read(**/.env.production)",
+      "Read(**/.env.test)",
+      "Read(**/.env.staging)",
       "Read(**/*.pem)",
       "Read(**/*.key)"
     ]

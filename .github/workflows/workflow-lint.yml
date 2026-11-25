@@ -1,10 +1,10 @@
 name: Workflow lint
 
 # 워크플로 파일이 바뀐 PR 에서만 보안 검사를 돈다 (run 에 PR 입력 직접 사용, 과한 권한, pull_request_target 등).
+# 대상 브랜치는 가리지 않는다 — 다른 PR 위에 쌓은 PR 도 워크플로를 바꿀 수 있다 (ci.yml 과 같은 방침).
 # 경로 조건이 있는 검사라 필수 검사로는 걸지 않는다 — 안 도는 PR 에서 "대기 중"으로 막히기 때문.
 on:
   pull_request:
-    branches: [dev, main]
     paths:
       - '.github/workflows/**'
       - '.github/actions/**'

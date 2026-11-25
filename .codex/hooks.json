@@ -7,7 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$(git rev-parse --show-toplevel)/scripts/agent-hooks/guard.mjs\" --tool=codex",
+            "command": "node \"$(git rev-parse --show-toplevel)/scripts/agent-hooks/guard.mjs\"",
             "timeout": 10
           }
         ]

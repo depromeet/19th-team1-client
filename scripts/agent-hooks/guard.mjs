@@ -30,7 +30,7 @@ export const RULES = [
   },
   {
     id: 'npm-yarn',
-    name: 'npm·yarn 으로 패키지 설치',
+    name: 'npm·yarn·bun 으로 패키지 설치',
     pattern:
       /(^|[;&|(]\s*)(npm\s+(i|install|add|ci|uninstall|remove|rm|update)\b|yarn\b|bun\s+(add|install|remove)\b)/,
     why: '이 레포는 pnpm 만 씁니다(lockfile 이 갈라짐). 웹은 pnpm --filter, 앱은 apps/mobile 에서 npx expo install.',
