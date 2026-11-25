@@ -6,8 +6,7 @@ import { test } from 'node:test';
 
 import { check } from '../guard.mjs';
 
-const levelOf = (command, forTool) =>
-  check(command, { forTool })?.level ?? 'pass';
+const levelOf = (command) => check(command)?.level ?? 'pass';
 
 const CASES = [
   // 막기
@@ -22,17 +21,17 @@ const CASES = [
   ['git push origin +feat/a', 'deny'],
   ['npm install zod', 'deny'],
   ['cd apps/web && yarn add zod', 'deny'],
-  // 묻기
-  ['git push origin feat/a', 'ask'],
-  ['git push --force-with-lease origin feat/a', 'ask'],
-  ['pnpm --filter @team1/web add zod', 'ask'],
-  ['npx expo install expo-camera', 'ask'],
-  ['git reset --hard origin/dev', 'ask'],
-  ['git checkout .', 'ask'],
-  ['git stash drop', 'ask'],
-  ['pkill -f next', 'ask'],
-  ['rm -rf .git', 'ask'],
-  ['rm -rf ~', 'ask'],
+  // 통과 — 자기 작업만 잃는 명령은 팀 훅이 다루지 않는다 (각자 설정 몫)
+  ['git push origin feat/a', 'pass'],
+  ['git push --force-with-lease origin feat/a', 'pass'],
+  ['pnpm --filter @team1/web add zod', 'pass'],
+  ['npx expo install expo-camera', 'pass'],
+  ['git reset --hard origin/dev', 'pass'],
+  ['git checkout .', 'pass'],
+  ['git stash drop', 'pass'],
+  ['pkill -f next', 'pass'],
+  ['rm -rf .git', 'pass'],
+  ['rm -rf ~', 'pass'],
   // 통과
   ['cat apps/web/.env.example', 'pass'],
   ['cp apps/web/.env.example apps/web/.env.local', 'pass'],
@@ -48,14 +47,9 @@ const CASES = [
 
 for (const [command, expected] of CASES) {
   test(`${expected}: ${command.split('\n')[0]}`, () => {
-    assert.equal(levelOf(command, 'claude'), expected);
+    assert.equal(levelOf(command), expected);
   });
 }
-
-test('Codex 에서는 묻기 규칙을 훅이 다루지 않는다 (.codex/rules 몫)', () => {
-  assert.equal(levelOf('git push origin feat/a', 'codex'), 'pass');
-  assert.equal(levelOf('git push --force origin feat/a', 'codex'), 'deny');
-});
 
 test('훅 출력 모양 — 두 도구 공통 permissionDecision', () => {
   const script = path.join(import.meta.dirname, '../guard.mjs');
