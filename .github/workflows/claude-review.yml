@@ -79,6 +79,19 @@ jobs:
           curl -fsSL https://claude.ai/install.sh | bash -s 2.1.294
           echo "CLAUDE_BIN=$HOME/.local/bin/claude" >> "$GITHUB_ENV"
           "$HOME/.local/bin/claude" --version
+      - name: 직접 실행(시험)
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          for m in claude-sonnet-5-5 claude-haiku-5-5; do
+            printf 'API %s → ' "$m"
+            curl -s https://api.anthropic.com/v1/messages -H "x-api-key: $ANTHROPIC_API_KEY" -H "anthropic-version: 2023-06-01" -H "content-type: application/json" \
+              -d "{\"model\":\"$m\",\"max_tokens\":5,\"messages\":[{\"role\":\"user\",\"content\":\"ok\"}]}" | jq -c '.error.message // "통과"'
+          done
+          for m in sonnet haiku; do
+            printf 'CLI %s → ' "$m"
+            "$CLAUDE_BIN" -p "ok 라고만 답해" --model "$m" --max-turns 1 --output-format json 2>&1 | jq -c '{is_error, result, cost: .total_cost_usd}' || true
+          done
 
       - name: 리뷰
         id: claude
