@@ -23,6 +23,10 @@ Claude Code 와 Codex 로 이 레포를 작업할 때 무엇이 자동으로 걸
 - 처음 열면 이 폴더를 신뢰할지 묻는다 — 신뢰해야 훅이 돈다.
 - 확인: 새 세션에서 `/hooks` 에 PreToolUse 훅 1개, 스킬 목록에 `commit` 등이 보이면 된다.
 
+### GitHub CLI
+
+- 이슈 · PR 을 만드는 스킬(`issue` · `pr-dev` · `pr-main`)은 `gh` 를 쓴다. `gh auth status` 로 로그인을 확인하고, 안 돼 있으면 사람이 `gh auth login` 을 한 번 한다(브라우저 로그인이라 에이전트가 대신 못 한다).
+
 ### Codex
 
 - 레포 루트에서 `codex` 를 실행한다. 프로젝트를 **신뢰(trust)** 로 둬야 `.codex/` 를 읽는다.
