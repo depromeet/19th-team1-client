@@ -12,9 +12,14 @@
 | ----------- | ------------------------------------------------------------------------------------------ |
 | 상태        | `초안` 적용하되 보고에 "초안 기준" 표시 · `확정` 팀이 정함 · `폐기` 인용 금지(기록은 남김) |
 | 걸리는 방식 | `기계` ESLint·훅·CI 가 막음 · `예시` 따라 쓸 코드가 있음 · `글` 문장으로만 있음            |
+| 예시        | 레포에 모범 파일이 있으면 그 경로, 아직 없으면 짧은 좋은/나쁜 코드 조각                    |
 
 목표는 `글` → `예시` → `기계` 로 올리는 것이다. 기계로 올라간 기준은 룰 문장(`.claude/rules/*.md`)에서 지운다.
 판단이 필요해 기계가 못 막는 기준은 `글` 에 머무는 게 정상이다.
+
+**에이전트는 룰 문장보다 옆 코드를 더 따라 쓴다.** 그래서 긴 설명은 이 장부와 모범 코드에 두고, 경로별 룰은 번호와 한 줄만 둔다.
+아직 기능 코드가 적어 지금은 코드 조각으로 예시를 든다. 첫 기능 PR 이 병합되면 그 파일을 모범으로 삼아 `예시` 를 경로로 바꾸고 조각은 지운다 —
+첫 기능 PR 은 이 장부 기준으로 특히 꼼꼼히 리뷰한다.
 
 ## 기준이 쌓이는 길
 
@@ -27,7 +32,7 @@
 
 - 번호는 다시 쓰지 않는다. 뒤집으면 새 번호를 만들고 옛 번호에 `대체됨: C-xx` 를 붙인다.
 - 그때만의 취향은 올리지 않는다. "다음에도 같은 지적을 할 것인가"가 기준이다.
-- 항목 모양: `### C-xx 한 줄 기준 · 상태 · 걸리는 방식` 아래에 `기준` · `왜` · (있으면) `출처`(PR 번호) · `날짜`.
+- 항목 모양: `### C-xx 한 줄 기준 · 상태 · 걸리는 방식` 아래에 `기준` · `왜` · (있으면) `예시` · `기계` · `출처`(PR 번호) · `날짜`.
 
 ---
 
@@ -55,11 +60,36 @@
 
 - 기준: 기본값 → 의미 있는 빈 값 → 판별 유니온 순서로 먼저 시도한다. 없을 수 있는 값은 경계에서 한 번 처리한다.
 - 왜: 타입 에러를 피하려고 붙인 `?` 는 안쪽 모든 곳에 `?.` · `??` 를 퍼뜨리고, 진짜로 없는 경우와 구분이 안 된다.
+- 예시:
+  ```ts
+  // 나쁨 — 없는 경우와 아직 안 정한 경우가 섞인다
+  interface Filter {
+    keyword?: string;
+    tags?: string[];
+  }
+  // 좋음 — 의미 있는 빈 값
+  interface Filter {
+    keyword: string;
+    tags: string[];
+  } // 빈 문자열·빈 배열이 "조건 없음"
+  ```
 
 ### C-05 단언(`as`)은 좁힐 방법이 없을 때만, 이유 주석과 함께 · `초안` · `글`
 
 - 기준: 타입 가드·스키마로 좁힐 수 없을 때만 쓰고 왜 안전한지 적는다.
 - 왜: 이유 없는 단언은 리뷰어가 안전한지 판단할 수 없다.
+
+### C-39 객체 모양은 `interface`, 유니온·함수·조합은 `type` · `초안` · `기계`
+
+- 기준: Props · 응답 같은 객체 모양은 `interface`. 유니온 · 함수 타입 · `z.infer` · 유틸리티 타입 조합은 `type`.
+- 왜: 같은 모양을 두 방식으로 섞어 쓰면 리뷰 때마다 어느 쪽인지 묻게 된다.
+- 기계: `@typescript-eslint/consistent-type-definitions`
+
+### C-40 ESLint 규칙을 끌 때는 이유를 같은 줄에 · `초안` · `글`
+
+- 기준: `// eslint-disable-next-line <규칙> -- <왜 안전한가>`. 파일 전체 끄기(`/* eslint-disable */`)는 쓰지 않는다.
+- 왜: 막는 규칙이 많을수록 끄는 길이 늘어난다. 이유가 없으면 리뷰어가 예외인지 실수인지 모른다.
+- 기계 후보: `eslint-comments/require-description` — 끄는 주석이 늘면 올린다.
 
 ## 배치 · 구조
 
@@ -71,7 +101,10 @@
 ### C-07 순수 함수는 기능 폴더의 `utils.ts` 하나에 모은다 · `초안` · `글`
 
 - 기준: 함수 하나짜리 파일을 만들지 않는다. 테스트는 `utils.test.ts` 하나. 파일이 커지면 기능 폴더를 나눈다.
+- 언제 빼나: 테스트할 가치가 있거나(분기·계산) 읽기가 나아질 때. 한 줄 변환은 쓰는 자리에 둔다.
+- 예외: 한 모듈(예: API 클라이언트)만 쓰는 변환은 그 모듈 파일에 둬도 된다. 기반 코드(`src/lib/*`)는 처음부터 공용이라 C-06 의 "기능 폴더 먼저"를 따르지 않는다.
 - 왜: 함수마다 파일을 만들면 같은 함수가 이름만 바꿔 또 생긴다.
+- 예시: `apps/web/src/lib/api/client.ts` (모듈 전용 변환을 그 파일 안에 둠)
 
 ### C-08 유틸을 새로 만들기 전에 있는 것을 찾는다 · `초안` · `글`
 
@@ -99,12 +132,25 @@
 - 기준: `process.env` 를 직접 읽지 않는다. 새 변수는 `env.ts` 스키마와 `.env.example` 에 함께 더한다.
 - 왜: 빠진 값을 화면이 아니라 시작할 때 알게 한다.
 - 기계: `no-restricted-properties` (웹 `src/**`, `src/lib/env.ts` 제외)
+- 예시: `apps/web/src/lib/env.ts`
+
+### C-38 이름 — 폴더·파일은 kebab-case, 컴포넌트 파일만 컴포넌트 이름 · `초안` · `예시`
+
+- 기준: 폴더 `item-list/`. 컴포넌트 파일은 컴포넌트 이름 그대로 `ItemCard.tsx`(C-13). 훅 파일은 훅 이름 `useItems.ts`. 그 밖(유틸·스키마·서비스·상수)은 `item-schema.ts` 처럼 kebab-case.
+  Next 가 정한 파일(`page.tsx` · `layout.tsx` · `providers.tsx` 같은 앱 진입 파일)은 그대로.
+- 왜: 파일이 적은 지금 정하지 않으면 사람마다 케이스가 갈라지고, 나중에 맞추려면 import 를 전부 고쳐야 한다.
+- 예시: `apps/web/src/lib/api/api-error.ts` · `apps/web/src/lib/query/get-query-client.ts`
+
+### C-41 새 라이브러리는 결정 기록을 남긴 뒤 들인다 · `초안` · `글`
+
+- 기준: 의존성을 새로 더하는 PR 은 `docs/decisions/` 에 한 장(왜 · 대안 · 버리는 것)을 같이 올리거나, 이미 있는 결정을 가리킨다. 이미 쓰는 라이브러리로 되는 일은 새로 들이지 않는다.
+- 왜: 초기 팀은 한 기능마다 비슷한 라이브러리가 하나씩 늘기 쉽다. 들인 이유가 없으면 나중에 뺄 수도 없다.
 
 ## 컴포넌트
 
 ### C-13 내보내는 컴포넌트는 파일당 하나, 파일 이름과 같게 · `초안` · `글`
 
-- 기준: 그 파일에서만 쓰는 비공개 하위 컴포넌트는 같은 파일에 둬도 된다. 길어지면 C-15 가 잡는다.
+- 기준: 그 파일에서만 쓰는 비공개 하위 컴포넌트는 같은 파일에 둬도 된다. 길어지면 C-15 가 잡는다. 파일·폴더 이름 규칙은 C-38.
 - 왜: 파일 이름으로 찾을 수 있어야 한다. 못 찾으면 같은 컴포넌트를 또 만든다.
 
 ### C-14 `page.tsx` · `layout.tsx` 는 조합만 한다 · `초안` · `글`
@@ -125,32 +171,71 @@
 ### C-17 로딩·에러·빈 상태는 위에서 끊는다 · `초안` · `글`
 
 - 기준: `if (isPending) return …` 처럼 위에서 끊고, 값이 정해진 뒤 접근한다. `data?.list ?? []` 로 흘려보내지 않는다.
+- 순서: 훅 → 계산값 → 핸들러 → early return → 그리기. 훅은 return 보다 앞에 둔다(`react-hooks/rules-of-hooks` 가 막는다) — "위에서 끊는다"는 훅 다음이다.
 - 왜: 빈 배열로 흘리면 조회 실패가 "목록 없음"으로 보인다 — 사용자는 실패를 모른다.
+- 예시:
+  ```tsx
+  const { data, isPending, isError, refetch } = useItems();
+  if (isPending) return <ItemsSkeleton />;
+  if (isError) return <LoadFailed onRetry={refetch} />;
+  if (data.items.length === 0) return <EmptyItems />;
+  return <ItemList items={data.items} />;
+  ```
 
-### C-18 `useEffect` 는 허용 목록에서만 · `초안` · `글`
+### C-18 `useEffect` 는 허용 목록에서만 · `초안` · `기계`(일부)
 
 - 기준: 외부 이벤트 구독 · 타이머 · 서드파티 연결 · 포커스/스크롤 · 받아 온 값으로 폼 처음 채우기. props 가 바뀔 때 state 를 맞추는 용도는 `key` 나 계산값으로.
+  사용자가 한 일(누름·제출)에 따라 할 일은 효과가 아니라 그 핸들러에서 한다. 의존성 규칙을 주석으로 끄지 않는다.
 - 왜: 계산으로 될 것을 효과로 하면 한 박자 늦게 그려지고, 의존성 누락 버그가 생긴다.
+- 기계: `react-hooks/set-state-in-effect` · `react-hooks/exhaustive-deps`(경고지만 `--max-warnings=0` 이라 막힘). 허용 목록 판단은 글.
+- 예시:
+  ```tsx
+  // 나쁨 — 계산값을 state 로 복사
+  useEffect(() => setFullName(`${first} ${last}`), [first, last]);
+  // 좋음
+  const fullName = `${first} ${last}`;
+  ```
 
 ### C-19 중첩 삼항을 쓰지 않는다 · `초안` · `글`
 
 - 기준: 변수로 빼거나 `Record<상태, …>` 매핑. 스타일 변형은 `cn()` 조건.
+  `&&` 앞에는 boolean 만 둔다 — `count && <Badge />` 는 0 일 때 화면에 `0` 이 찍힌다. `count > 0 &&` 로.
 - 왜: 3분기 이상의 중첩 삼항은 어느 조건이 어느 결과인지 읽기 어렵다.
+- 예시:
+  ```tsx
+  const STATUS_LABEL: Record<Status, string> = {
+    draft: '임시',
+    open: '공개',
+    closed: '마감',
+  };
+  return <span>{STATUS_LABEL[status]}</span>;
+  ```
 
-### C-20 메모이제이션은 기본으로 쓰지 않는다 · `초안` · `글`
+### C-20 메모이제이션은 기본으로 쓰지 않는다 · `초안` · `기계`(일부)
 
 - 기준: 큰 계산·참조 안정성이 필요한 의존성일 때만 `useMemo` · `useCallback`, 쓰면 이유 주석.
 - 왜: 대부분의 렌더는 충분히 싸다. 습관성 메모는 의존성 배열 실수만 늘리고 읽기 어렵게 한다.
+- 기계: `react-hooks/use-memo` · `react-hooks/preserve-manual-memoization` 이 잘못 쓴 메모를 막는다. 쓸지 말지는 글.
 
-### C-21 이름 — 핸들러는 `handle` + 동사, named export · `초안` · `글`
+### C-21 이름 — 핸들러는 `handle` + 동사, 이벤트 props 는 `on` + 동사, named export · `초안` · `글`
 
-- 기준: 주 동작이 하나면 `handleSubmit`, 둘 이상이면 명사까지(`handleDeleteItem`). Next 라우트 파일(`page` · `layout` 등) 밖은 named export.
+- 기준: 주 동작이 하나면 `handleSubmit`, 둘 이상이면 명사까지(`handleDeleteItem`). 받는 쪽 props 는 `onSubmit` · `onDeleteItem`. Props 타입 이름은 `<컴포넌트>Props`.
+  Next 라우트 파일(`page` · `layout` 등) 밖은 named export.
 - 왜: default export 는 가져오는 쪽이 아무 이름이나 붙여 사용처를 검색할 수 없다.
 
 ### C-22 모달은 부모가 "대상이 있으면 열림"으로 연다 · `초안` · `글`
 
 - 기준: `const [target, setTarget] = useState<Item | null>(null)` — 열림 여부와 대상을 따로 들지 않는다.
 - 왜: 둘을 따로 들면 "열렸는데 대상이 없음" 상태가 생긴다.
+- 예시:
+  ```tsx
+  const [deleting, setDeleting] = useState<Item | null>(null);
+  {
+    deleting && (
+      <DeleteDialog item={deleting} onClose={() => setDeleting(null)} />
+    );
+  }
+  ```
 
 ## 서버 데이터 · 상태
 
@@ -158,10 +243,20 @@
 
 - 기준: 무효화에서 키 문자열을 다시 치지 않는다. 데이터 가공은 `select` 에서.
 - 왜: 키 하나만 틀려도 캐시가 안 지워지는데 타입이 못 잡는다.
+- 기계: `@tanstack/query/exhaustive-deps` 가 키에 빠진 값을 막는다. 키 함수를 한 곳에 두는 것은 글.
+- 예시:
+  ```ts
+  const itemKeys = {
+    all: ['items'] as const,
+    detail: (id: string) => ['items', id] as const,
+  };
+  // 조회: queryKey: itemKeys.detail(id) · 무효화: invalidateQueries({ queryKey: itemKeys.all })
+  ```
 
 ### C-24 토스트·이동·무효화는 mutation 콜백에서 · `초안` · `글`
 
 - 기준: 기본은 `onSuccess` · `onError`. 앞이 실패하면 뒤를 보내면 안 되는 연속 요청만 핸들러에서 `await mutateAsync` + `try/catch`.
+  저장이 바꾼 데이터를 보여 주는 쿼리는 `onSuccess` 에서 무효화한다 — 빠지면 저장 뒤에도 화면이 옛 값을 그린다.
 - 왜: 핸들러와 콜백에 나눠 쓰면 성공·실패 처리가 두 곳으로 갈라진다.
 
 ### C-25 저장 실패는 화면에 닿는다 · `초안` · `글`
@@ -183,6 +278,12 @@
 
 - 기준: 클라이언트에서 역할을 다시 계산하지 않는다. "이 버튼을 보이나" 같은 분기는 `canXxx(…)` 순수 함수 + 단위 테스트.
 - 왜: 버튼 숨김은 편의이지 보안이 아니다. 컴포넌트 안 분기는 테스트하기 어렵다.
+- 예시:
+  ```ts
+  // utils.ts — 서버가 준 값만 보고 판단
+  export const canEditItem = (item: Item, me: Me) =>
+    item.ownerId === me.id && item.status !== 'closed';
+  ```
 
 ## 화면
 
@@ -204,6 +305,23 @@
 ### C-32 클래스 순서는 Prettier 가 정렬한다 · `초안` · `기계`
 
 - 기계: `prettier-plugin-tailwindcss` — 손으로 정렬하지 않는다.
+
+### C-42 누르는 것은 `<button>` · `<a>` 로, 아이콘만 있으면 이름을 붙인다 · `초안` · `글`
+
+- 기준: `<div onClick>` 을 쓰지 않는다. 이동은 `<Link>`, 동작은 `<button type="button">`. 글자 없는 아이콘 버튼은 `aria-label`.
+- 왜: `div` 는 키보드·스크린리더로 누를 수 없고, 이름 없는 아이콘 버튼은 "버튼"으로만 읽힌다. 셀렉터(C-36)도 못 찾는다.
+- 기계(일부): `jsx-a11y` 6규칙(aria 문법·`alt`)이 켜져 있다. 이 기준은 그 밖이다.
+- 예시:
+  ```tsx
+  <button type="button" aria-label="삭제" onClick={handleDelete}>
+    <TrashIcon />
+  </button>
+  ```
+
+### C-43 포커스 표시를 지우지 않고, 글자 대비는 4.5:1 이상 · `초안` · `글`
+
+- 기준: `outline-none` 을 쓰면 `focus-visible:` 로 대신 보이는 표시를 준다. 본문 글자와 배경의 대비는 4.5:1 이상(큰 글자 3:1). 색은 디자인 토큰이 생기면 토큰 기준으로 본다.
+- 왜: 포커스 표시가 없으면 키보드로 어디에 있는지 모른다. 옅은 회색 글자는 밝은 화면·야외에서 안 읽힌다.
 
 ## 테스트
 

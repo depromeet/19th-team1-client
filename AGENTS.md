@@ -58,7 +58,8 @@ Expo 앱 안에 Next.js 웹을 웹뷰로 띄우는 pnpm 모노레포다. 서버(
 ## 코드 기준
 
 기준 정본은 `docs/code-standards.md` (번호 `C-xx`). 지금은 전부 초안이고 PR 리뷰로 확정한다.
-기계(ESLint·훅·CI)가 막는 것은 여기 다시 쓰지 않는다 — `any` · `!` · 이중 단언 · 상위 폴더 상대 경로 · `process.env` 직접 접근 · import 순서.
+기계(ESLint·훅·CI)가 막는 것은 여기 다시 쓰지 않는다 — `any` · `!` · 이중 단언 · 객체 모양 `type` · `@ts-ignore` · 상위 폴더 상대 경로 · `process.env` 직접 접근 · import 순서 · React 훅 규칙(효과 안 setState · 의존성 · 순수성 등, eslint-config-next 경유) · React Query 규칙. 경고도 `--max-warnings=0` 이라 막힌다.
+긴 설명과 코드 예시는 장부에 있다. 경로별 룰은 번호와 한 줄만 둔다.
 
 | 파일                          | 언제 읽나                                   |
 | ----------------------------- | ------------------------------------------- |

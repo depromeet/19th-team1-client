@@ -5,7 +5,8 @@ paths:
 
 # 웹 (apps/web)
 
-`docs/code-standards.md` 에서 웹 몫을 뽑은 요약이다. 번호는 장부 번호. 전부 초안.
+`docs/code-standards.md` 에서 웹 몫을 한 줄씩 뽑은 색인이다. 번호는 장부 번호, 전부 초안. **이유와 코드 예시는 장부의 그 번호에 있다** — 판단이 애매하면 장부를 연다.
+옆 파일의 모양을 따르되, 옆 파일이 아래 기준과 다르면 기준을 따른다.
 
 ## Next 16 · cacheComponents
 
@@ -20,22 +21,24 @@ paths:
 - `page.tsx` · `layout.tsx` 는 조합만 한다. 상태·핸들러는 기능 컴포넌트로 (C-14).
 - 순수 함수는 기능 폴더의 `utils.ts` 하나에 모은다. 새로 만들기 전에 있는 것을 찾는다 (C-07 · C-08).
 - 경로 문자열은 상수 한 곳에서 꺼낸다 (C-11).
+- 폴더·파일은 kebab-case, 컴포넌트 파일은 컴포넌트 이름(`ItemCard.tsx`), 훅 파일은 훅 이름(`useItems.ts`) (C-38).
+- 의존성을 새로 더하면 `docs/decisions/` 에 결정 기록을 같이 남긴다 (C-41).
 
 ## 컴포넌트
 
 - 내보내는 컴포넌트는 파일당 하나, 파일 이름과 같게. 그 파일에서만 쓰는 하위 컴포넌트는 같은 파일에 둬도 된다 (C-13).
 - 새 파일은 300줄 · 핸들러 5개 · JSX 깊이 4 안에서 (C-15).
 - 화면 컴포넌트 안에서 `useQuery` · `useMutation` 을 직접 만들지 않는다. 기능 폴더의 훅을 부른다 (C-16).
-- 로딩·에러·빈 상태는 위에서 끊고(early return) 값이 정해진 뒤 그린다. `data?.list ?? []` 로 흘리지 않는다 (C-17).
-- `useEffect` 는 외부 이벤트·타이머·서드파티·포커스/스크롤·폼 최초 값 채우기에만. props 로 state 를 맞추는 용도는 `key` 나 계산값으로 (C-18).
-- 중첩 삼항 대신 변수나 `Record` 매핑 (C-19). 메모이제이션은 필요할 때만, 쓰면 이유 주석 (C-20).
-- 핸들러는 `handle` + 동사(+ 명사). Next 파일 밖은 named export (C-21).
+- 순서는 훅 → 계산값 → 핸들러 → early return → 그리기. 로딩·에러·빈 상태는 훅 다음에 끊고, `data?.list ?? []` 로 흘리지 않는다 (C-17).
+- `useEffect` 는 외부 이벤트·타이머·서드파티·포커스/스크롤·폼 최초 값 채우기에만. 사용자 동작에 따른 일은 핸들러에서, 의존성 규칙은 끄지 않는다 (C-18).
+- 중첩 삼항 대신 변수나 `Record` 매핑. `&&` 앞에는 boolean 만 — `count > 0 &&` (C-19). 메모이제이션은 필요할 때만, 쓰면 이유 주석 (C-20).
+- 핸들러는 `handle` + 동사(+ 명사), 이벤트 props 는 `on` + 동사, Props 타입은 `<컴포넌트>Props`. Next 파일 밖은 named export (C-21).
 - 모달은 부모가 `useState<T | null>` 로 "대상이 있으면 열림" (C-22).
 
 ## 서버 데이터 (React Query)
 
 - 쿼리 키는 키 함수 하나로 만들고 조회·무효화가 같이 쓴다. 무효화에서 문자열을 다시 치지 않는다 (C-23).
-- 토스트·이동·무효화는 mutation 콜백(`onSuccess` · `onError`)에서. 앞이 실패하면 뒤를 보내면 안 되는 연속 요청만 `mutateAsync` + `try/catch` (C-24).
+- 토스트·이동·무효화는 mutation 콜백(`onSuccess` · `onError`)에서. 저장이 바꾼 데이터의 쿼리는 `onSuccess` 에서 무효화한다. 연속 요청만 `mutateAsync` + `try/catch` (C-24).
 - 저장 실패는 화면에 닿는다 — 토스트·배너·`isError` 중 하나 (C-25).
 - 전역 스토어를 들이지 않는다. 서버 값은 React Query, 화면 값은 `useState` · URL · Context (C-27).
 - 응답·폼 검증은 Zod, 폼은 React Hook Form + Zod 로 정했다. 파일 위치·호출 모양·서버 컴포넌트 미리 받기는 아직 보류다 (장부 "보류"). 정해지기 전에는 `src/lib/api` 의 `api.get(path, schema)` 와 옆 기능의 모양을 따른다.
@@ -44,6 +47,11 @@ paths:
 
 - Tailwind. 조건부 클래스는 `cn()` (`@/lib/cn`) 으로 합친다 (C-30). 클래스 순서는 Prettier 가 정렬한다.
 - 디자인 시스템이 생기기 전까지 임의값(`w-[13px]`)보다 Tailwind 스케일을 먼저 쓴다 (C-31).
+
+## 접근성
+
+- 누르는 것은 `<button type="button">` · `<Link>`. `<div onClick>` 금지, 아이콘만 있는 버튼은 `aria-label` (C-42).
+- `outline-none` 을 쓰면 `focus-visible:` 표시를 대신 준다. 글자 대비 4.5:1 이상 (C-43).
 
 ## 테스트
 
