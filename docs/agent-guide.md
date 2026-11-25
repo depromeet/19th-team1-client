@@ -57,10 +57,26 @@ Claude Code 와 Codex 로 이 레포를 작업할 때 무엇이 자동으로 걸
 | 이렇게 말하면              | 스킬             | 하는 일                                                                    |
 | -------------------------- | ---------------- | -------------------------------------------------------------------------- |
 | "커밋해"                   | `commit`         | 이번 작업 파일만 관심사별로 커밋                                           |
-| "PR 올려"                  | `pr`             | dev 에 맞추기 → 검사 → 푸시 → 템플릿 채워 PR → `@coderabbitai review` 댓글 |
-| "dev 에 맞춰" / 앞 PR 병합 | `sync`           | rebase (앞 PR Squash 병합이면 `--onto`)                                    |
+| "PR 올려"                  | `pr-dev`         | dev 에 맞추기 → 검사 → 푸시 → 템플릿 채워 PR → `@coderabbitai review` 댓글 |
+| "dev 에 맞춰" / 앞 PR 병합 | `rebase-dev`     | rebase (앞 PR Squash 병합이면 `--onto`)                                    |
+| "배포 PR 올려"             | `pr-main`        | 지난 배포 뒤 PR 모으기 → dev 확인 → `release:` PR (병합은 사람)            |
+| "로컬에서 확인해"          | `verify-local`   | 바뀐 워크스페이스 검사 · 바뀐 화면을 휴대폰·데스크톱으로                   |
+| "dev 에서 확인해"          | `verify-dev`     | dev 배포·PR 미리보기에서 바뀐 화면 · 콘솔 · API 호출                       |
+| "운영 확인해"              | `verify-prod`    | 운영 주소에서 읽기만 하며 확인                                             |
 | "리뷰 반영해"              | `review-respond` | 스레드 분류표 → 고른 것만 반영 → 답글 초안 (게시는 사람이)                 |
 | "기준에 넣어"              | `add-standard`   | 장부에 번호로 올림, 이미 있으면 다음 단계 제안                             |
+
+## 배포 (Vercel)
+
+| 브랜치 | 주소                                                         |
+| ------ | ------------------------------------------------------------ |
+| `dev`  | https://19th-team1-client-git-dev-sik02s-projects.vercel.app |
+| `main` | https://19th-team1-client.vercel.app (운영)                  |
+| PR     | PR 마다 Vercel 이 미리보기 주소를 댓글로 단다                |
+
+- 루트 `apps/web`. `dev`·`main` 에 병합되거나 PR 에 푸시하면 자동으로 배포된다.
+- Vercel 프로젝트 관리자: @sikkzz — 환경 변수 · 도메인 · 빌드 로그 · 되돌리기는 관리자에게 요청한다.
+- 환경 변수를 새로 쓰면 `.env.example` 에 적고 PR 본문에 알린다. Vercel 에는 관리자가 넣는다.
 
 ## 코드 기준 장부
 
