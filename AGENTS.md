@@ -89,22 +89,24 @@ GitHub 에서 읽거나(`gh api repos/depromeet/<레포>/contents/<경로>`) 옆
 | `.claude/rules/mobile.md`     | `apps/mobile/**` 를 고칠 때                 |
 | `.claude/rules/typescript.md` | `.ts` · `.tsx` 를 고칠 때                   |
 | `docs/code-standards.md`      | 리뷰에서 번호를 볼 때, 기준을 더할 때       |
+| `.github/claude-review.md`    | 리뷰 지시문 — 리뷰하거나 리뷰어를 고칠 때   |
 | `docs/decisions/`             | 이미 정한 것을 뒤집고 싶을 때 (먼저 읽는다) |
 
 Claude 는 `paths` 머리말로 위 룰을 자동으로 읽는다. **Codex 는 자동으로 읽지 않는다** — 그 영역 파일을 고치기 전에 위 룰 파일을 직접 읽는다.
 
 ## 스킬
 
-| 스킬           | 언제                                                           |
-| -------------- | -------------------------------------------------------------- |
-| `issue`        | 작업을 요청받으면 먼저 — 템플릿대로 이슈(있으면 그것을 씀)     |
-| `commit`       | 커밋하라고 할 때 — 관심사별로 나눠 커밋                        |
-| `pr-dev`       | PR 을 올리라고 할 때 — 검사 → 푸시 → `dev` 로 PR               |
-| `rebase-dev`   | `dev` 에 맞추라고 할 때, 앞 PR 이 병합된 뒤                    |
-| `pr-main`      | 배포 PR(`dev` → `main`)을 만들 때 — 병합(= 운영 배포)은 사람이 |
-| `verify-local` | 로컬에서 바뀐 것만 검사·쓰는 곳·화면 확인                      |
-| `verify-dev`   | Vercel `dev` 배포·PR 미리보기에서 확인                         |
-| `verify-prod`  | 운영 배포 뒤 확인 — 읽기만                                     |
+| 스킬             | 언제                                                           |
+| ---------------- | -------------------------------------------------------------- |
+| `issue`          | 작업을 요청받으면 먼저 — 템플릿대로 이슈(있으면 그것을 씀)     |
+| `commit`         | 커밋하라고 할 때 — 관심사별로 나눠 커밋                        |
+| `pr-dev`         | PR 을 올리라고 할 때 — 검사 → 푸시 → `dev` 로 PR               |
+| `rebase-dev`     | `dev` 에 맞추라고 할 때, 앞 PR 이 병합된 뒤                    |
+| `pr-main`        | 배포 PR(`dev` → `main`)을 만들 때 — 병합(= 운영 배포)은 사람이 |
+| `verify-local`   | 로컬에서 바뀐 것만 검사·쓰는 곳·화면 확인                      |
+| `verify-dev`     | Vercel `dev` 배포·PR 미리보기에서 확인                         |
+| `verify-prod`    | 운영 배포 뒤 확인 — 읽기만                                     |
+| `review-respond` | 리뷰 반영하라고 할 때 — 검증 · 분류 → 고침 → 답글 초안         |
 
 ## 협업 규칙 요약
 
@@ -112,7 +114,8 @@ Claude 는 `paths` 머리말로 위 룰을 자동으로 읽는다. **Codex 는 �
 - 작업은 이슈에서 시작하고, `dev` 로 가는 PR 본문에는 `close #번호` 가 있어야 한다(CI 가 검사).
 - 기능 브랜치는 `dev` 에서 따고 PR 대상도 `dev`. PR 제목은 병합 커밋 제목이 되므로 커밋 규칙대로.
 - 배포는 Vercel — `dev` 브랜치는 dev 주소, `main` 은 운영 주소, PR 마다 미리보기. 배포 PR(`dev` → `main`) 제목은 `release: <배포 내용>`. 주소는 `docs/agent-guide.md`.
-- 리뷰 반영은 로컬에서 고쳐 커밋한다 (GitHub suggestion 버튼 쓰지 않음). 답글 게시와 resolve 는 사람이 한다. 자세히는 `docs/code-review.md`.
+- 리뷰 반영은 로컬에서 고쳐 커밋한다 (GitHub suggestion 버튼 쓰지 않음). 답글 게시와 resolve 는 사람이 한다. 답글 첫 단어는 `반영:` · `반영 안 함:` · `보류:` — 리뷰 사례로 모아 기준을 고친다. 자세히는 `docs/code-review.md`.
+- `dev` 로 가는 PR 은 Claude 가 먼저 리뷰한다(커밋을 더 올리면 그 커밋분만). Claude 지적도 코드로 검증한다 — 틀리면 반영하지 않고 이유를 답한다.
 - 강제 푸시는 자기 브랜치에서 `--force-with-lease` 로만.
 
 ## 실제로 밟은 함정
