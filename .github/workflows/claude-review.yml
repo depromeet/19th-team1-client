@@ -6,8 +6,7 @@ name: Claude 리뷰
 # diff · 기존 댓글은 워크플로가 파일로 넘기고, 줄 댓글 · 요약 · 비용은 워크플로가 GitHub 토큰으로 올린다.
 on:
   pull_request:
-    # 시험: PR #7 에서 실제로 돌려 보려고 잠깐 더함 — 확인 뒤 되돌린다
-    branches: [dev, chore/agent-assets]
+    branches: [dev]
     types: [opened, synchronize, ready_for_review, reopened]
     # 문서·잠금 파일만 바뀐 PR 은 사람 리뷰로 충분하다 — 비용을 아낀다
     paths-ignore:
