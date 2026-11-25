@@ -130,7 +130,7 @@
 
 ### C-38 이름 — 폴더·파일은 kebab-case, 컴포넌트 파일만 컴포넌트 이름 · `초안` · `예시`
 
-- 기준: 폴더 `item-list/`. 컴포넌트 파일은 컴포넌트 이름 그대로 `ItemCard.tsx`(C-13). 훅 파일은 훅 이름 `useItems.ts`. 그 밖(유틸·스키마·서비스·상수)은 `item-schema.ts` 처럼 kebab-case.
+- 기준: 폴더 `item-list/`. 컴포넌트 파일은 컴포넌트 이름 그대로 `ItemCard.tsx`(C-13). 훅 파일은 훅 이름 `useItems.ts`. 그 밖(유틸·스키마·상수)은 `get-items.schema.ts` · `item-utils.ts` 처럼 kebab-case.
   Next 가 정한 파일(`page.tsx` · `layout.tsx` · `providers.tsx` 같은 앱 진입 파일)은 그대로.
 - 왜: 파일이 적은 지금 정하지 않으면 사람마다 케이스가 갈라지고, 나중에 맞추려면 import 를 전부 고쳐야 한다.
 - 예시: `apps/web/src/lib/api/api-error.ts` · `apps/web/src/lib/query/get-query-client.ts`
@@ -233,6 +233,27 @@
 
 ## 서버 데이터 · 상태
 
+### C-51 응답 타입은 Zod 스키마에서 꺼낸다 · `초안` · `글`
+
+- 기준: 서버 응답은 Zod 스키마로 정의하고 타입은 `z.infer` 로 꺼낸다. 응답 모양을 `interface` 로 손으로 쓰지 않는다.
+  스키마는 기능 폴더 `api/` 에, 엔드포인트 하나에 파일 하나 — `features/<도메인>/api/get-items.schema.ts`. 여러 엔드포인트가 같이 쓰는 조각(enum 등)만 따로 모은다.
+  스키마는 `export` 한다 — 테스트 데이터도 같은 스키마로 만든다(C-45).
+- 왜: 손으로 쓴 타입과 스키마가 두 벌이면 하나만 고쳐도 조용히 어긋난다. 엔드포인트마다 파일이 나뉘어야 서버 변경이 어디에 닿는지 보인다.
+- 결정: `docs/decisions/0001-zod-and-react-hook-form.md`
+- 예시:
+  ```ts
+  // features/items/api/get-items.schema.ts
+  export const itemSchema = z.object({ id: z.string(), title: z.string() });
+  export const getItemsSchema = z.object({ items: z.array(itemSchema) });
+  export type Item = z.infer<typeof itemSchema>;
+  ```
+
+### C-52 서버 API 는 `@/lib/api` 의 `api` 로만 부른다 · `초안` · `예시`
+
+- 기준: 컴포넌트 · 훅에서 `fetch` 를 직접 부르지 않는다. `api.get(path, schema, { signal })` 처럼 응답 스키마를 꼭 넘기고, React Query 의 `signal` 을 넘긴다. 실패는 `ApiError` 로 온다.
+- 왜: 주소 조립 · 시간 제한 · 재시도할 실패 구분 · 응답 검사를 한 곳에서 한다. 직접 `fetch` 하면 그중 하나씩 빠진다.
+- 예시: `apps/web/src/lib/api/client.ts` (머리 주석의 `queryFn` 예)
+
 ### C-23 쿼리 키는 키 함수 하나로 만들고, 조회와 무효화가 같이 쓴다 · `초안` · `글`
 
 - 기준: 무효화에서 키 문자열을 다시 치지 않는다. 데이터 가공은 `select` 에서.
@@ -260,7 +281,7 @@
 
 ### C-26 쿼리·뮤테이션은 기능 폴더 한 파일에 모은다 · `초안` · `글`
 
-- 기준: 키 함수 · 조회 · 뮤테이션 훅을 기능마다 한 파일에. 파일 이름과 모양(쿼리 옵션 팩토리 여부)은 API 호출 방식 논의 뒤 정한다.
+- 기준: 키 함수 · 조회 · 뮤테이션 훅을 기능마다 한 파일에. 파일 이름과 모양(쿼리 옵션 팩토리 여부)은 보류 "쿼리 훅 모양" — 첫 API 연동 PR 에서 정한다.
 - 왜: 키와 무효화가 한 파일에 있어야 C-23 이 지켜진다.
 
 ### C-27 전역 상태 스토어 없이 시작한다 · `초안` · `글`
@@ -300,11 +321,11 @@
 
 - 기계: `prettier-plugin-tailwindcss` — 손으로 정렬하지 않는다.
 
-### C-42 누르는 것은 `<button>` · `<a>` 로, 아이콘만 있으면 이름을 붙인다 · `초안` · `글`
+### C-42 누르는 것은 `<button>` · `<a>` 로, 아이콘만 있으면 이름을 붙인다 · `초안` · `기계`
 
 - 기준: `<div onClick>` 을 쓰지 않는다. 이동은 `<Link>`, 동작은 `<button type="button">`. 글자 없는 아이콘 버튼은 `aria-label`.
 - 왜: `div` 는 키보드·스크린리더로 누를 수 없고, 이름 없는 아이콘 버튼은 "버튼"으로만 읽힌다. 셀렉터(C-36)도 못 찾는다.
-- 기계(일부): `jsx-a11y` 6규칙(aria 문법·`alt`)이 켜져 있다. 이 기준은 그 밖이다.
+- 기계: `jsx-a11y/no-static-element-interactions` · `click-events-have-key-events` · `control-has-associated-label` · `anchor-is-valid` 등 (`packages/eslint-config/next.mjs`, 웹 `src/**/*.tsx`).
 - 예시:
   ```tsx
   <button type="button" aria-label="삭제" onClick={handleDelete}>
@@ -439,8 +460,7 @@
 
 | 주제               | 정해야 할 것                                                              | 언제                        |
 | ------------------ | ------------------------------------------------------------------------- | --------------------------- |
-| API 응답 타입      | 응답 Zod 스키마 파일 위치·이름                                            | 첫 API 연동 PR              |
-| API 호출           | `src/lib/api` 래퍼 쓰는 법, 쿼리 옵션 팩토리 모양                         | 첫 API 연동 PR              |
+| 쿼리 훅 모양       | 쿼리 옵션 팩토리를 쓸지, 쿼리·뮤테이션 파일 이름(C-26)                    | 첫 API 연동 PR              |
 | 폼 상태            | 어떤 폼에 React Hook Form + Zod, 어떤 폼에 `useState`                     | 첫 폼 PR                    |
 | 폼 입력·제출 타입  | 빈 칸으로 시작하는 필수 값 다루기                                         | 첫 폼 PR                    |
 | 서버 컴포넌트 경계 | 서버에서 미리 받을 화면, `cacheComponents` 와 React Query 를 함께 쓰는 법 | 첫 API 연동 PR              |

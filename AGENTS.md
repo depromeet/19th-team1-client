@@ -19,6 +19,27 @@ Expo 앱 안에 Next.js 웹을 웹뷰로 띄우는 pnpm 모노레포다. 서버(
 웹 스택: Tailwind 4 · TanStack Query 5 · Zod 4 · React Hook Form 7 · Vitest + Testing Library · Playwright.
 전역 상태 스토어는 두지 않는다 (`useState` · URL 파라미터 · Context).
 
+## 관련 레포
+
+| 레포                                                                                 | 무엇                                                                                               | 언제 읽나                               |
+| ------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| [`depromeet/19th-team1-spec`](https://github.com/depromeet/19th-team1-spec) `PRD.md` | 기획 정본. 요구사항 ID(`C·O·H·R·N·P-번호`) · 상태(확정·논의·보류) · 범위 밖 · 열린 질문(`OQ-번호`) | 기능·화면을 만들기 전                   |
+| [`depromeet/19th-team1-server`](https://github.com/depromeet/19th-team1-server)      | 서버(API). 규칙은 `.claude/rules/api.md`, 문서는 `docs/`                                           | API 를 붙이기 전, 응답이 예상과 다를 때 |
+
+GitHub 에서 읽거나(`gh api repos/depromeet/<레포>/contents/<경로>`) 옆 폴더에 받아 읽는다. 두 레포는 읽기만 한다 — 고칠 것이 있으면 사람에게 알린다.
+
+**기획(PRD)**
+
+- `확정` 인 요구사항만 만든다. `논의` 이거나 열린 질문(OQ)에 걸린 것은 만들기 전에 사람에게 묻는다. "범위 밖"은 만들지 않는다.
+- PRD 에 없는 화면 문구·기능·필드를 지어내지 않는다. 디자인 시안이 있으면 시안이 문구의 정본이다.
+- PR 본문에 관련 요구사항 ID 를 적는다.
+- PRD 는 아직 기획 레포의 PR([#1](https://github.com/depromeet/19th-team1-spec/pull/1))로 올라가 있다 — 병합 전에는 그 PR 의 `PRD.md` 를 본다.
+
+**서버(API)**
+
+- 경로는 `/api/v1/...`. 성공 응답은 `{ "data": … }`, 실패 응답은 `{ "code": "…", "message": "…" }` — 웹 `src/lib/api` 가 이 모양을 가정한다. 서버 쪽 모양이 바뀌면 `client.ts` · `api-error.ts` 도 같이 바꾼다.
+- 엔드포인트·필드가 없거나 다르면 지어내지 않고 서버 파트에 묻는다. 응답 스키마(C-51)는 서버 응답 DTO 를 보고 쓴다.
+
 ## 명령어
 
 | 명령                                         | 내용                                       |
@@ -58,7 +79,7 @@ Expo 앱 안에 Next.js 웹을 웹뷰로 띄우는 pnpm 모노레포다. 서버(
 ## 코드 기준
 
 기준 정본은 `docs/code-standards.md` (번호 `C-xx`). 지금은 전부 초안이고 PR 리뷰로 확정한다.
-기계(ESLint·훅·CI)가 막는 것은 여기 다시 쓰지 않는다 — `any` · `!` · 이중 단언 · 객체 모양 `type` · `@ts-ignore` · 상위 폴더 상대 경로 · `process.env` 직접 접근 · import 순서 · React 훅 규칙(효과 안 setState · 의존성 · 순수성 등, eslint-config-next 경유) · React Query 규칙. 경고도 `--max-warnings=0` 이라 막힌다.
+기계(ESLint·훅·CI)가 막는 것은 여기 다시 쓰지 않는다 — `any` · `!` · 이중 단언 · 객체 모양 `type` · `@ts-ignore` · 상위 폴더 상대 경로 · `process.env` 직접 접근 · import 순서 · `<div onClick>`·이름 없는 아이콘 버튼 · React 훅 규칙(효과 안 setState · 의존성 · 순수성 등, eslint-config-next 경유) · React Query 규칙. 경고도 `--max-warnings=0` 이라 막힌다.
 긴 설명과 코드 예시는 장부에 있다. 경로별 룰은 번호와 한 줄만 둔다.
 
 | 파일                          | 언제 읽나                                   |

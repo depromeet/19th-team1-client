@@ -50,7 +50,7 @@ paths:
 
 ## 접근성
 
-- 누르는 것은 `<button type="button">` · `<Link>`. `<div onClick>` 금지, 아이콘만 있는 버튼은 `aria-label` (C-42).
+- 누르는 것은 `<button type="button">` · `<Link>`. `<div onClick>` 금지, 아이콘만 있는 버튼은 `aria-label` (C-42, 린트가 막음).
 - `outline-none` 을 쓰면 `focus-visible:` 표시를 대신 준다. 글자 대비 4.5:1 이상 (C-43).
 
 ## 테스트

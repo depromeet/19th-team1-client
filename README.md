@@ -61,6 +61,11 @@ E2E 는 3000 에 떠 있는 서버를 그대로 쓴다 — 우리 웹(`pnpm dev:
 커밋할 때 린트·포맷·커밋 메시지, 푸시할 때 브랜치 이름·타입 검사가 자동으로 돈다(Husky).
 같은 검사를 PR 에서 CI 가 한 번 더 돈다.
 
+## 관련 레포
+
+- 기획 정본(PRD): [`depromeet/19th-team1-spec`](https://github.com/depromeet/19th-team1-spec)
+- 서버(API): [`depromeet/19th-team1-server`](https://github.com/depromeet/19th-team1-server)
+
 ## 에이전트 (Claude Code · Codex)
 
 에이전트가 읽는 정본은 [`AGENTS.md`](AGENTS.md), 사람용 사용법은 [`docs/agent-guide.md`](docs/agent-guide.md).
