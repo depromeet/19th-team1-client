@@ -46,6 +46,8 @@ const CASES = [
   ["git commit -m 'a\\' && cat .env && echo 'b'", 'deny'],
   ["/bin/bash <<'EOF'\nnpm install zod\nEOF", 'deny'],
   ['git commit -m "$(cat "x" .env)"', 'deny'],
+  ['cat .git/HEAD -b ".env"', 'deny'],
+  ['echo x && git commit -m "docs: cat .env 안내" && cat .env', 'deny'],
   // 통과 — 자기 작업만 잃는 명령은 팀 훅이 다루지 않는다 (각자 설정 몫)
   ['git push origin feat/a', 'pass'],
   ['git push --force-with-lease origin feat/a', 'pass'],
@@ -76,6 +78,7 @@ const CASES = [
   // 메시지 속 글은 명령이 아니다 — 정상 커밋 · PR 이 막혔다 (PR #4 시험 리뷰)
   ['git commit -m "docs: cat .env 안내"', 'pass'],
   ['git commit -m "feat: 옵션 -n 추가"', 'pass'],
+  ['cd apps/web && git commit -m "docs: cat .env 안내"', 'pass'],
   ["git commit -am 'docs: grep .env 예시'", 'pass'],
   ['gh pr create --title "x" --body "source .env 대신 .env.example"', 'pass'],
   [
