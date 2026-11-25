@@ -100,7 +100,7 @@ Claude 는 `paths` 머리말로 위 룰을 자동으로 읽는다. **Codex 는 �
 | `pr-dev`       | PR 을 올리라고 할 때 — 검사 → 푸시 → `dev` 로 PR               |
 | `rebase-dev`   | `dev` 에 맞추라고 할 때, 앞 PR 이 병합된 뒤                    |
 | `pr-main`      | 배포 PR(`dev` → `main`)을 만들 때 — 병합(= 운영 배포)은 사람이 |
-| `verify-local` | 로컬에서 바뀐 것만 검사·화면 확인                              |
+| `verify-local` | 로컬에서 바뀐 것만 검사·쓰는 곳·화면 확인                      |
 | `verify-dev`   | Vercel `dev` 배포·PR 미리보기에서 확인                         |
 | `verify-prod`  | 운영 배포 뒤 확인 — 읽기만                                     |
 
