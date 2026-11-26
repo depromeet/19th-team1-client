@@ -2,6 +2,8 @@
 
 ## 관련 이슈
 
+<!-- dev 로 가는 PR 은 필수 — close #번호 가 없으면 CI 가 막는다. 병합되면 이슈가 저절로 닫힌다. 기능이면 PRD 요구사항 ID 도 -->
+
 - close #
 
 ## 선행 PR
@@ -36,4 +38,3 @@
 - [ ] 대상 브랜치가 `dev`
 - [ ] 로컬에서 `pnpm lint && pnpm typecheck` 통과
 - [ ] 화면 변경이면 스크린샷 첨부
-- [ ] CodeRabbit 리뷰 요청 — PR 을 올린 뒤 `@coderabbitai review` 댓글

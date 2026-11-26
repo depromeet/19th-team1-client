@@ -1,0 +1,21 @@
+name: 작업
+description: 리팩터링 · 문서 · 설정 · 테스트처럼 기능도 버그도 아닌 일
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: 무엇을 · 왜
+      description: 할 일과 필요한 이유
+    validations:
+      required: true
+  - type: textarea
+    id: tasks
+    attributes:
+      label: 할 일
+      value: |
+        - [ ]
+  - type: textarea
+    id: refs
+    attributes:
+      label: 참고 자료
+      description: 관련 이슈·PR·문서 링크

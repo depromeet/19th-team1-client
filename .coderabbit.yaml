@@ -1,20 +1,19 @@
 # yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
-# AI 리뷰 설정 — 시범 운영 중 (docs/code-review.md)
+# CodeRabbit 은 쓰지 않는다 — AI 리뷰는 Claude 로 바꿈 (docs/decisions/0005-ai-review-claude.md).
+# 앱이 조직에 설치돼 있어 이 파일을 지우면 기본값(자동 리뷰·요약 켜짐)으로 돈다. 그래서 끄는 설정만 남긴다.
+# 조직 앱 설정에서 이 레포를 빼면 이 파일도 지운다.
 language: ko-KR
 reviews:
-  # 조용하게 시작한다. 시범 결과를 보고 assertive 검토
-  profile: chill
-  poem: false
   auto_review:
-    enabled: true
-    drafts: false
-    # 기본 브랜치가 main 으로 돌아가도 dev 대상 PR 을 리뷰하게
-    base_branches: ['dev']
-  path_filters:
-    - '!pnpm-lock.yaml'
-    - '!**/next-env.d.ts'
-  path_instructions:
-    - path: '.github/workflows/**'
-      instructions: 'run: 에 github.head_ref, PR 제목·본문 같은 PR 작성자 입력 표현식을 직접 넣었는지 확인한다. env 로 넘기고 셸 변수로 참조해야 한다.'
-    - path: 'apps/web/**'
-      instructions: "Next 16 cacheComponents 를 켜 두었다. 캐시하지 않은 비동기 데이터(fetch 등)와 런타임 API(cookies, headers) 접근은 Suspense 경계 안에 있는지 확인한다. 'use cache' 결과는 Suspense 없이 정적 셸에 들어갈 수 있으니 지적하지 않는다. 일반 'use cache' 안에서 cookies()·headers() 를 직접 호출하면 지적한다."
+    enabled: false
+  high_level_summary: false
+  review_status: false
+  pre_merge_checks:
+    title:
+      mode: 'off'
+    description:
+      mode: 'off'
+    issue_assessment:
+      mode: 'off'
+chat:
+  auto_reply: false
