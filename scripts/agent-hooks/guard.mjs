@@ -43,22 +43,55 @@ export const RULES = [
  * heredoc 본문은 실행되는 명령이 아니라 파일·메시지에 쓰는 글이라 검사에서 뺀다.
  * 시작 줄의 나머지(`<<'EOF'; cat .env`)는 실행되므로 남기고, 따옴표 없는 heredoc 은
  * 본문의 명령 치환(`$(…)` · 백틱)이 실행되므로 그것만 남긴다.
+ * 셸(`bash` · `sh` · `zsh` · `dash` · `ssh`, 경로로 불러도)에 넘기는 heredoc 은 — 앞에 오든(`bash <<`) 파이프로 받든(`<< … | bash`) — 본문이 실행되므로 빼지 않는다.
+ * 다른 인터프리터(`python3 -` · `node`)는 셸 명령이 아니라 보지 않는다 — `node -e` 처럼 이 훅이 다루지 않는 우회다.
  */
+// heredoc 본문을 실행하는 것 — 셸(경로로 불러도) · `source` · `eval` · 점 명령
+const SHELL_INPUT =
+  /(?:^|[\s;&|(/])(?:bash|sh|zsh|dash|ksh|ssh|source|eval)\b|(?:^|[\s;&|(])\.\s/;
+
 export function stripHeredoc(command) {
   return command.replace(
-    /<<-?\s*(['"]?)(\w+)\1([^\n]*)\n([\s\S]*?)\n\s*\2\b/g,
-    (_, quote, _tag, rest, body) => {
+    /([^\n]*?)<<-?\s*(['"]?)(\w+)\2([^\n]*)\n([\s\S]*?)\n\s*\3\b/g,
+    (whole, before, quote, _tag, rest, body) => {
+      if (SHELL_INPUT.test(`${before} ${rest}`)) return whole;
       const substitutions = quote
         ? []
         : (body.match(/\$\([^)]*\)|`[^`]*`/g) ?? []);
-      return ` ${rest} ${substitutions.join(' ')} `;
+      return `${before} ${rest} ${substitutions.join(' ')} `;
     },
   );
 }
 
+// git · gh 명령(명령 자리에 온 것만 — `.git/HEAD` 같은 경로는 아님. 앞에 `이름=값` · `then` · `do` 가 와도 된다) 안의
+// 메시지 인자 하나 — 앞부분 · 따옴표 · 내용. 따옴표로 묶인 다른 인자는 통째로 건너뛴다. 작은따옴표 안에는 이스케이프가 없다
+const MESSAGE_ARG =
+  /((?:^|[;&|(\n])\s*(?:(?:\w+=\S*|then|do|else|time)\s+)*(?:git|gh)\s(?:"[^"]*"|'[^']*'|[^;&|)\n"'])*?\s(?:-[a-zA-Z]*m|--message|--body|--title|--notes|-[bt])[\s=]+)(?:"((?:\\.|[^"\\])*)"|'([^']*)')/;
+
+/**
+ * git · gh 의 커밋 메시지 · PR 제목 · 본문 인자(`-m "…"` · `--body "…"` 등)는 글이라 비운다.
+ * 메시지 속 `cat .env` · ` -n` 이 명령으로 잘못 걸려 정상 커밋이 막혔다(PR #4 시험 리뷰).
+ * 다른 명령의 같은 옵션(`cat -b ".env"`)은 건드리지 않는다.
+ * 큰따옴표 안에 명령 치환(`$(…)` · 백틱)이 있으면 셸이 실행하므로, 거기서 멈추고 나머지를 그대로 검사한다(안쪽 따옴표로 메시지 끝을 잘못 잡지 않게).
+ */
+export function stripMessages(command) {
+  let text = command;
+  for (
+    let match = text.match(MESSAGE_ARG);
+    match;
+    match = text.match(MESSAGE_ARG)
+  ) {
+    const [whole, head, doubleQuoted] = match;
+    if (doubleQuoted !== undefined && /\$\(|`/.test(doubleQuoted)) break;
+    text = text.replace(whole, `${head}_`);
+  }
+  return text;
+}
+
 /** 걸린 규칙 목록. 없으면 null */
 export function check(command) {
-  const text = stripHeredoc(command);
+  // 메시지를 먼저 비운다 — 제목 속 `bash` 같은 글이 heredoc 을 셸로 넘기는 것처럼 보이지 않게
+  const text = stripHeredoc(stripMessages(command));
   const hits = RULES.filter((rule) => rule.pattern.test(text));
   return hits.length > 0 ? { level: 'deny', hits } : null;
 }
