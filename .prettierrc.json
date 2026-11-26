@@ -4,5 +4,8 @@
   "trailingComma": "all",
   "tabWidth": 2,
   "endOfLine": "lf",
-  "arrowParens": "always"
+  "arrowParens": "always",
+  "plugins": ["prettier-plugin-tailwindcss"],
+  "tailwindStylesheet": "./apps/web/src/app/globals.css",
+  "tailwindFunctions": ["cn", "clsx"]
 }

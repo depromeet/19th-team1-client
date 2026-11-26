@@ -11,6 +11,9 @@ on:
 permissions:
   contents: read
 
+# 외부 액션은 태그가 아니라 커밋 SHA 로 고정한다 — 태그는 옮겨질 수 있어서, 액션 저장소가 탈취되면
+# 같은 태그로 다른 코드가 돈다. 올릴 때는 SHA 와 뒤의 버전 주석을 함께 바꾼다.
+
 # 같은 PR 에 새 커밋이 오면 이전 실행을 취소한다
 concurrency:
   group: ci-${{ github.ref }}
@@ -22,7 +25,7 @@ jobs:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       # 브랜치 이름은 PR 작성자가 정하는 값이라 run 에 직접 넣지 않고 env 로 넘긴다 (셸 주입 방지)
       - name: 브랜치 이름
@@ -41,12 +44,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       # package.json 의 packageManager(pnpm@10.x)를 읽는다
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -68,3 +71,37 @@ jobs:
 
       - name: 빌드
         run: pnpm build
+
+  # 실제 브라우저로 화면 흐름을 본다 — 브라우저 설치로 시간이 더 들어서 필수 검사로는 걸지 않는다
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: 의존성 설치
+        run: pnpm install --frozen-lockfile
+
+      - name: 브라우저 설치
+        run: pnpm --filter @team1/web exec playwright install --with-deps chromium webkit
+
+      - name: 웹 빌드
+        run: pnpm --filter @team1/web build
+
+      - name: E2E
+        run: pnpm test:e2e
+
+      - name: 실패 결과 올리기
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: playwright-report
+          path: apps/web/playwright-report
+          retention-days: 7

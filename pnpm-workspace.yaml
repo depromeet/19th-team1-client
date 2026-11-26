@@ -13,3 +13,14 @@ catalog:
   '@types/react-dom': ~19.3.0
   typescript: ~6.0.3
   eslint: ^9.39.5
+
+# 공급망 보호 — 최근 npm 공급망 사고는 악성 버전이 몇 시간 노출된 뒤 내려갔다.
+# 공개된 지 7일이 안 된 버전은 설치하지 않는다(딸려 오는 패키지 포함). 단위는 분.
+# 급한 보안 패치가 필요하면 minimumReleaseAgeExclude 에 그 패키지만 적는다.
+# 예외를 지울 때는 그 패키지를 다시 설치해 잠금 파일도 7일 지난 버전으로 바꾼다 —
+# 잠금 파일에 이미 적힌 버전은 이 검사 없이 설치된다(--frozen-lockfile).
+minimumReleaseAge: 10080
+# 이전에 받은 것보다 신뢰 수준(서명·출처 증명)이 낮아진 판은 받지 않는다
+trustPolicy: no-downgrade
+# 딸려 오는 패키지가 레지스트리가 아닌 곳(git·URL)에서 오면 막는다
+blockExoticSubdeps: true
