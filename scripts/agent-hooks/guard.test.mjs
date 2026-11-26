@@ -48,6 +48,10 @@ const CASES = [
   ['git commit -m "$(cat "x" .env)"', 'deny'],
   ['cat .git/HEAD -b ".env"', 'deny'],
   ['cat $(git rev-parse HEAD) -b ".env"', 'deny'],
+  // PR #7 Claude 리뷰 — source · eval · 점 명령으로 넘긴 heredoc 도 본문이 실행된다
+  ["source /dev/stdin <<'EOF'\nnpm install zod\nEOF", 'deny'],
+  [". /dev/stdin <<'EOF'\nnpm install zod\nEOF", 'deny'],
+  ['eval "$(cat <<\'EOF\'\nnpm install zod\nEOF\n)"', 'deny'],
   ['echo x && git commit -m "docs: cat .env 안내" && cat .env', 'deny'],
   // 통과 — 자기 작업만 잃는 명령은 팀 훅이 다루지 않는다 (각자 설정 몫)
   ['git push origin feat/a', 'pass'],
@@ -80,6 +84,10 @@ const CASES = [
   ['git commit -m "docs: cat .env 안내"', 'pass'],
   ['git commit -m "feat: 옵션 -n 추가"', 'pass'],
   ['cd apps/web && git commit -m "docs: cat .env 안내"', 'pass'],
+  // PR #7 Claude 리뷰 — 앞에 환경 변수 · then 이 오거나, 괄호 든 따옴표 인자 뒤의 메시지도 글이다
+  ['GIT_EDITOR=true git commit -m "docs: cat .env 안내"', 'pass'],
+  ['if true; then git commit -m "docs: cat .env 안내"; fi', 'pass'],
+  ['git commit --author="A (팀)" -m "docs: cat .env 안내"', 'pass'],
   ["git commit -am 'docs: grep .env 예시'", 'pass'],
   ['gh pr create --title "x" --body "source .env 대신 .env.example"', 'pass'],
   [

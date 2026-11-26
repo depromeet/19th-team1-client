@@ -46,12 +46,15 @@ export const RULES = [
  * 셸(`bash` · `sh` · `zsh` · `dash` · `ssh`, 경로로 불러도)에 넘기는 heredoc 은 — 앞에 오든(`bash <<`) 파이프로 받든(`<< … | bash`) — 본문이 실행되므로 빼지 않는다.
  * 다른 인터프리터(`python3 -` · `node`)는 셸 명령이 아니라 보지 않는다 — `node -e` 처럼 이 훅이 다루지 않는 우회다.
  */
+// heredoc 본문을 실행하는 것 — 셸(경로로 불러도) · `source` · `eval` · 점 명령
+const SHELL_INPUT =
+  /(?:^|[\s;&|(/])(?:bash|sh|zsh|dash|ksh|ssh|source|eval)\b|(?:^|[\s;&|(])\.\s/;
+
 export function stripHeredoc(command) {
   return command.replace(
     /([^\n]*?)<<-?\s*(['"]?)(\w+)\2([^\n]*)\n([\s\S]*?)\n\s*\3\b/g,
     (whole, before, quote, _tag, rest, body) => {
-      if (/(?:^|[\s;&|(/])(?:bash|sh|zsh|dash|ssh)\b/.test(`${before} ${rest}`))
-        return whole;
+      if (SHELL_INPUT.test(`${before} ${rest}`)) return whole;
       const substitutions = quote
         ? []
         : (body.match(/\$\([^)]*\)|`[^`]*`/g) ?? []);
@@ -60,9 +63,10 @@ export function stripHeredoc(command) {
   );
 }
 
-// git · gh 명령(명령 자리에 온 것만 — `.git/HEAD` 같은 경로는 아님) 안의 메시지 인자 하나 — 앞부분 · 따옴표 · 내용. 작은따옴표 안에는 이스케이프가 없다
+// git · gh 명령(명령 자리에 온 것만 — `.git/HEAD` 같은 경로는 아님. 앞에 `이름=값` · `then` · `do` 가 와도 된다) 안의
+// 메시지 인자 하나 — 앞부분 · 따옴표 · 내용. 따옴표로 묶인 다른 인자는 통째로 건너뛴다. 작은따옴표 안에는 이스케이프가 없다
 const MESSAGE_ARG =
-  /((?:^|[;&|(\n])\s*(?:git|gh)\s[^;&|)\n]*?\s(?:-[a-zA-Z]*m|--message|--body|--title|--notes|-[bt])[\s=]+)(?:"((?:\\.|[^"\\])*)"|'([^']*)')/;
+  /((?:^|[;&|(\n])\s*(?:(?:\w+=\S*|then|do|else|time)\s+)*(?:git|gh)\s(?:"[^"]*"|'[^']*'|[^;&|)\n"'])*?\s(?:-[a-zA-Z]*m|--message|--body|--title|--notes|-[bt])[\s=]+)(?:"((?:\\.|[^"\\])*)"|'([^']*)')/;
 
 /**
  * git · gh 의 커밋 메시지 · PR 제목 · 본문 인자(`-m "…"` · `--body "…"` 등)는 글이라 비운다.
